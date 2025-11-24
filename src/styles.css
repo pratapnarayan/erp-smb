@@ -120,9 +120,26 @@ body {
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; grid-template-areas: "header" "main"; }
   .sidebar { display:none; }
-  .search { width: 200px; }
+
+  /* Topbar wraps to two rows: title then actions */
+  .topbar { flex-wrap: wrap; gap: 8px; }
+  .topbar-title { flex: 1 1 100%; font-size: 16px; }
+  .topbar-actions { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; width: 100%; }
+  .search { width: 100%; }
+
+  /* Content spacing tighter on mobile */
+  .content { padding: 12px; }
+
+  /* Grids collapse to single column */
+  .grid.cols-2 { grid-template-columns: 1fr; }
   .grid.cols-3 { grid-template-columns: 1fr; }
   .grid.cols-4 { grid-template-columns: 1fr; }
+
+  /* Table density on small screens */
+  .table th, .table td { padding: 8px 10px; font-size: 14px; }
+
+  /* Login card tighter spacing */
+  .login-card-body { padding: 16px; }
 }
 
 /* Auth layout */
