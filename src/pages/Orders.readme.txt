@@ -1,0 +1,1 @@
+This module demonstrates a basic Orders page with a simple add-order form and a sortable table.

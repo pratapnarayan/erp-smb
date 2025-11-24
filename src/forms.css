@@ -1,0 +1,31 @@
+.form { display: grid; gap: 12px; }
+.form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.form-grid .span-2 { grid-column: span 2; }
+.form-actions { display:flex; justify-content: flex-end; }
+
+input, select, textarea { 
+  width: 100%;
+  padding: 10px 12px; 
+  border-radius: 10px; 
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--bg-elev)); 
+  color: inherit;
+}
+
+.btn { 
+  padding: 10px 14px; 
+  border-radius: 10px; 
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--bg-elev)); 
+  color: inherit; 
+  cursor: pointer; 
+}
+.btn-primary { 
+  border-color: hsl(var(--primary-500) / 0.3);
+  background: hsl(var(--primary-500) / 0.15);
+}
+
+@media (max-width: 900px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .span-2 { grid-column: auto; }
+}
