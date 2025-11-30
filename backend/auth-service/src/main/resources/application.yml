@@ -5,8 +5,8 @@ spring:
     name: auth-service
   datasource:
     url: jdbc:postgresql://postgres:5432/erp
-    username: ${POSTGRES_USER:erp}
-    password: ${POSTGRES_PASSWORD:erp}
+    username: postgres
+    password: admin
   jpa:
     hibernate:
       ddl-auto: validate
@@ -20,5 +20,5 @@ spring:
     locations: classpath:db/migration
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    secret: f59c84b9e3db679ddc41bfc59bfb8a1ddaf91022cf47bc6b9faef05c2d0e9483
     access-ttl: 3600

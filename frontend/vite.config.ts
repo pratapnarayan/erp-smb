@@ -8,8 +8,10 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8080', // gateway-service
         changeOrigin: true,
+        ws: true, // support websockets
+        secure: false,
       },
     },
   },
