@@ -158,4 +158,3 @@ body {
 /* On white card body, ensure inputs are white and readable */
 .login-card-body input, .login-card-body select, .login-card-body textarea { background: #fff; color: #0f172a; border-color: #e5e7eb; }
 .login-card-body .btn-primary { background: #2563eb22; border-color: #2563eb55; }
-

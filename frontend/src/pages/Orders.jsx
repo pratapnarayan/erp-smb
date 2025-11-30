@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { ordersApi } from '../api/client.js';
+import React, { useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -12,7 +11,6 @@ const columns = [
   { key: 'date', label: 'Date' },
 ];
 
-// replaced by API data
 const initialData = [
   { id: 'SO-1051', customer: 'Acme Co', status: 'Paid', total: '₹1,240.00', date: '2025-11-03' },
   { id: 'SO-1050', customer: 'Globex', status: 'Pending', total: '₹520.00', date: '2025-11-02' },
@@ -21,26 +19,15 @@ const initialData = [
 
 export default function Orders() {
   const [rows, setRows] = useState(initialData);
-  useEffect(() => {
-    ordersApi.list(0, 20).then((p) => {
-      const mapped = p.content.map(o => ({ id: o.code, customer: o.customer, status: o.status, total: `₹${Number(o.total).toFixed(2)}`, date: o.orderDate }));
-      setRows(mapped);
-    }).catch(()=>{});
-  }, []);
   const [form, setForm] = useState({ customer: '', status: 'Pending', total: '', date: '' });
 
-  const addRow = async (e) => {
+  const addRow = (e) => {
     e.preventDefault();
     if (!form.customer || !form.total || !form.date) return;
-    const id = `SO-${Math.floor(1000 + Math.random() * 9000)}`; // kept for UI generation but backend stores code
-    const payload = { code: id, customer: form.customer, status: form.status, total: Number(form.total), orderDate: form.date };
-    try {
-      await ordersApi.create(payload);
-      const refreshed = await ordersApi.list(0, 20);
-      const mapped = refreshed.content.map(o => ({ id: o.code, customer: o.customer, status: o.status, total: `₹${Number(o.total).toFixed(2)}`, date: o.orderDate }));
-      setRows(mapped);
-      setForm({ customer: '', status: 'Pending', total: '', date: '' });
-    } catch(e) { /* noop */ }
+    const id = `SO-${Math.floor(1000 + Math.random() * 9000)}`;
+    const total = form.total.startsWith('$') ? form.total : `$${Number(form.total).toFixed(2)}`;
+    setRows([{ id, customer: form.customer, status: form.status, total, date: form.date }, ...rows]);
+    setForm({ customer: '', status: 'Pending', total: '', date: '' });
   };
 
   return (

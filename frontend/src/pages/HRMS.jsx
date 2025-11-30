@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { hrmsApi } from '../api/client.js';
+import React, { useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -19,12 +18,9 @@ const initialData = [
 
 export default function HRMS() {
   const [rows, setRows] = useState(initialData);
-  useEffect(()=>{
-    hrmsApi.list(0,20).then(p=>{ setRows(p.content.map(e=>({ name:e.name, role:e.role, dept:e.dept, status:e.status }))); });
-  },[]);
   const [form, setForm] = useState({ name: '', role: '', dept: 'Sales', status: 'Active' });
 
-  const addRow = async (e) => {
+  const addRow = (e) => {
     e.preventDefault();
     if (!form.name || !form.role) return;
     setRows([{ ...form }, ...rows]);

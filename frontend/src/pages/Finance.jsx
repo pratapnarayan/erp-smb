@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { financeApi } from '../api/client.js';
+import React, { useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 
@@ -19,15 +18,9 @@ const initialData = [
 
 export default function Finance() {
   const [rows, setRows] = useState(initialData);
-  useEffect(() => {
-    financeApi.list(0, 20).then(p => {
-      const mapped = p.content.map(t => ({ date: t.txDate, account: t.account, type: t.txType, amount: `₹${Number(t.amount).toFixed(2)}`, memo: t.memo }));
-      setRows(mapped);
-    });
-  }, []);
   const [form, setForm] = useState({ date: '', account: 'Operating', type: 'Income', amount: '', memo: '' });
 
-  const addRow = async (e) => {
+  const addRow = (e) => {
     e.preventDefault();
     if (!form.date || !form.amount) return;
     const amount = form.amount.startsWith('$') ? form.amount : `${form.type === 'Expense' ? '-' : ''}$${Math.abs(Number(form.amount)).toFixed(2)}`;

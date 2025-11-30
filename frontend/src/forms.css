@@ -29,4 +29,3 @@ input, select, textarea {
   .form-grid { grid-template-columns: 1fr; }
   .form-grid .span-2 { grid-column: auto; }
 }
-
