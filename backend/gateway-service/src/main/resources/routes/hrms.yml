@@ -1,0 +1,5 @@
+proxy:
+  routes:
+    - id: hrms
+      path: /api/hrms/**
+      url: http://hrms-service:8087

@@ -1,0 +1,5 @@
+proxy:
+  routes:
+    - id: enquiry
+      path: /api/enquiry/**
+      url: http://enquiry-service:8088

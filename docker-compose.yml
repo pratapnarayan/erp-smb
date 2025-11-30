@@ -1,0 +1,115 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: erp
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+  config-service:
+    build:
+      context: ./backend
+      dockerfile: config-service/Dockerfile
+    ports: ['8888:8888']
+  discovery-service:
+    build:
+      context: ./backend
+      dockerfile: discovery-service/Dockerfile
+    ports: ['8761:8761']
+    depends_on: [config-service]
+  gateway-service:
+    build:
+      context: ./backend
+      dockerfile: gateway-service/Dockerfile
+    environment:
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    ports:
+      - '8080:8080'
+    depends_on: [config-service, discovery-service, auth-service, user-service, product-service, order-service, sales-service, finance-service, hrms-service, enquiry-service]
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: user-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  product-service:
+    build:
+      context: ./backend
+      dockerfile: product-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  order-service:
+    build:
+      context: ./backend
+      dockerfile: order-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  sales-service:
+    build:
+      context: ./backend
+      dockerfile: sales-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  finance-service:
+    build:
+      context: ./backend
+      dockerfile: finance-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  hrms-service:
+    build:
+      context: ./backend
+      dockerfile: hrms-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  enquiry-service:
+    build:
+      context: ./backend
+      dockerfile: enquiry-service/Dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+volumes:
+  pgdata: {}

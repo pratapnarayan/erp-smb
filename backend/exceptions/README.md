@@ -1,0 +1,1 @@
+Common exception handling patterns. Consider a global error contract and Spring @ControllerAdvice templates.

@@ -1,0 +1,5 @@
+proxy:
+  routes:
+    - id: auth
+      path: /api/auth/**
+      url: http://auth-service:8081

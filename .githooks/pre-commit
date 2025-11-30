@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Pre-commit hook to check for BOMs and suspicious escaped quotes in Java files
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$ROOT_DIR"
+if command -v bash >/dev/null 2>&1; then
+  bash infrastructure/scripts/check_bom_and_escapes.sh || exit 1
+else
+  echo "bash not available; if on Windows, configure Git Bash or run the PowerShell script manually."
+  exit 1
+fi

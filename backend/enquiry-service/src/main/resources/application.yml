@@ -1,0 +1,24 @@
+server:
+  port: 8088
+spring:
+  application:
+    name: enquiry-service
+  datasource:
+    url: jdbc:postgresql://postgres:5432/erp
+    username: ${POSTGRES_USER:erp}
+    password: ${POSTGRES_PASSWORD:erp}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: enquiry
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    schemas: enquiry
+    default-schema: enquiry
+    locations: classpath:db/migration
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    access-ttl: 3600

@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS finance;\nCREATE TABLE IF NOT EXISTS finance.transactions (\n  id SERIAL PRIMARY KEY,\n  tx_date DATE NOT NULL,\n  account VARCHAR(64) NOT NULL,\n  tx_type VARCHAR(32) NOT NULL,\n  amount NUMERIC(12,2) NOT NULL,\n  memo VARCHAR(255)\n);\n

@@ -1,17 +1,46 @@
-# Dependencies
-node_modules/ .vite/
-.idea/ *.iml .vscode/
+# Node.js Dependencies
+node_modules/
+.vite/
 
+# IDE
+.idea/
+*.iml
+.vscode/
 
-# Production
+# Production builds
 dist/
 build/
 
-# Misc
-.DS_Store
+# Java/Maven build artifacts
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Environment files
 .env
 .env.local
+backend/.env
+backend/.env.local
+
+# Logs
 *.log
-**/target/ *.jar *.war *.ear *.class
-.env backend/.env backend/.env.local
-*.zip *.tar *.gz *.rar
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar
+
+# Temporary files
+nul
+*.tmp
+*.temp
