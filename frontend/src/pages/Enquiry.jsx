@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { enquiryApi } from '../api/client.js';
+import React, { useMemo, useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -20,12 +19,9 @@ const initialData = [
 
 export default function Enquiry() {
   const [rows, setRows] = useState(initialData);
-  useEffect(()=>{
-    enquiryApi.list(0,20).then(p=>{ setRows(p.content.map(e=>({ id:e.code, customer:e.customer, channel:e.channel, subject:e.subject, status:e.status }))); });
-  },[]);
   const [form, setForm] = useState({ customer: '', channel: 'Email', subject: '', status: 'Open' });
 
-  const addRow = async (e) => {
+  const addRow = (e) => {
     e.preventDefault();
     if (!form.customer || !form.subject) return;
     const id = `ENQ-${Math.floor(1000 + Math.random() * 9000)}`;
