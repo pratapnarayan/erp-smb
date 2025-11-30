@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS orders;\nCREATE TABLE IF NOT EXISTS orders.sales_orders (\n  id SERIAL PRIMARY KEY,\n  code VARCHAR(64) UNIQUE NOT NULL,\n  customer VARCHAR(255) NOT NULL,\n  status VARCHAR(32) NOT NULL,\n  total NUMERIC(12,2) NOT NULL,\n  order_date DATE NOT NULL\n);\n

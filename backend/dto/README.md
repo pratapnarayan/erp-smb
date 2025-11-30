@@ -1,0 +1,1 @@
+Shared DTO conventions and examples. Place cross-service DTOs in common-lib if needed.

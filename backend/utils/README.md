@@ -1,0 +1,1 @@
+Utility classes and helpers shared across services, or move to common-lib if used in code.

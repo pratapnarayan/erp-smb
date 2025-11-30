@@ -1,0 +1,5 @@
+proxy:
+  routes:
+    - id: users
+      path: /api/users/**
+      url: http://user-service:8082

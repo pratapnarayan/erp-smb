@@ -1,0 +1,3 @@
+# Placeholder for environment-specific compose overrides
+version: '3.9'
+services: {}

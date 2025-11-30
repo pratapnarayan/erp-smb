@@ -1,0 +1,1 @@
+Shared security guidelines and templates. Consider adding security modules or starter configs here.

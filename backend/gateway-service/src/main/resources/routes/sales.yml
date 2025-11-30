@@ -1,0 +1,5 @@
+proxy:
+  routes:
+    - id: sales
+      path: /api/sales/**
+      url: http://sales-service:8085

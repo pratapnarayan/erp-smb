@@ -1,0 +1,23 @@
+name: Quality Checks
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+jobs:
+  bom-escapes-check:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check BOMs and escaped quotes (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          chmod +x infrastructure/scripts/check_bom_and_escapes.sh
+          ./infrastructure/scripts/check_bom_and_escapes.sh
+      - name: Check BOMs and escaped quotes (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./infrastructure/scripts/check_bom_and_escapes.ps1

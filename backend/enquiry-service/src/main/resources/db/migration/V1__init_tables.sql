@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS enquiry;\\nCREATE TABLE IF NOT EXISTS enquiry.enquiries (\\n  id SERIAL PRIMARY KEY,\\n  code VARCHAR(64) UNIQUE NOT NULL,\\n  customer VARCHAR(255) NOT NULL,\\n  channel VARCHAR(64) NOT NULL,\\n  subject VARCHAR(255) NOT NULL,\\n  status VARCHAR(32) NOT NULL\\n);\\n
