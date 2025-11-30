@@ -1,5 +1,7 @@
 # Dependencies
-node_modules/
+node_modules/ .vite/
+.idea/ *.iml .vscode/
+
 
 # Production
 dist/
@@ -10,3 +12,6 @@ build/
 .env
 .env.local
 *.log
+**/target/ *.jar *.war *.ear *.class
+.env backend/.env backend/.env.local
+*.zip *.tar *.gz *.rar
