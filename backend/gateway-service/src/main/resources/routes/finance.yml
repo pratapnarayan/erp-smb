@@ -2,4 +2,4 @@ proxy:
   routes:
     - id: finance
       path: /api/finance/**
-      url: http://finance-service:8086
+      uri: lb://finance-service

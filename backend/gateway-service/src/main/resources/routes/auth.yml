@@ -2,4 +2,4 @@ proxy:
   routes:
     - id: auth
       path: /api/auth/**
-      url: http://auth-service:8081
+      uri: lb://auth-service

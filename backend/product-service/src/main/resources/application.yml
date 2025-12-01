@@ -4,7 +4,7 @@ spring:
   application:
     name: product-service
   datasource:
-    url: jdbc:postgresql://postgres:5432/erp
+    url: jdbc:postgresql://postgres:5432/${POSTGRES_DB:erp}
     username: ${POSTGRES_USER:erp}
     password: ${POSTGRES_PASSWORD:erp}
   jpa:

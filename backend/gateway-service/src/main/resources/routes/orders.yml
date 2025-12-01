@@ -2,4 +2,4 @@ proxy:
   routes:
     - id: orders
       path: /api/orders/**
-      url: http://order-service:8084
+      uri: lb://order-service

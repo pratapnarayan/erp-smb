@@ -2,4 +2,4 @@ proxy:
   routes:
     - id: products
       path: /api/products/**
-      url: http://product-service:8083
+      uri: lb://product-service
