@@ -4,26 +4,14 @@ import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
 
-const kpis = [
-  { label: 'MRR', value: '₹42,980', delta: '+6.2%', trend: 'up', hint: 'vs last month' },
-  { label: 'Orders', value: '1,284', delta: '+3.1%', trend: 'up', hint: 'last 30 days' },
-  { label: 'AR Overdue', value: '₹12,450', delta: '-1.2%', trend: 'down', hint: 'aged > 30d' },
-  { label: 'Inventory Turnover', value: '5.2x', delta: '+0.4x', trend: 'up', hint: 'rolling 12m' },
-];
+import http from '../api/clients/http.js';
 
 const cols = [
-  { key: 'id', label: 'Order #' },
+  { key: 'code', label: 'Order #' },
   { key: 'customer', label: 'Customer' },
   { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Paid' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge> },
   { key: 'total', label: 'Total' },
-  { key: 'date', label: 'Date' },
-];
-
-const rows = [
-  { id: 'SO-1048', customer: 'Acme Co', status: 'Paid', total: '₹1,240.00', date: '2025-11-01' },
-  { id: 'SO-1047', customer: 'Globex', status: 'Pending', total: '₹690.00', date: '2025-10-31' },
-  { id: 'SO-1046', customer: 'Initech', status: 'Overdue', total: '₹2,140.00', date: '2025-10-30' },
-  { id: 'SO-1045', customer: 'Soylent', status: 'Paid', total: '₹320.00', date: '2025-10-28' },
+  { key: 'orderDate', label: 'Date' },
 ];
 
 export default function Dashboard() {

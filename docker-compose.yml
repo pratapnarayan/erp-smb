@@ -44,6 +44,9 @@ services:
       context: ./backend
       dockerfile: auth-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -53,6 +56,9 @@ services:
       context: ./backend
       dockerfile: user-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -62,6 +68,9 @@ services:
       context: ./backend
       dockerfile: product-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -71,6 +80,9 @@ services:
       context: ./backend
       dockerfile: order-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -80,6 +92,9 @@ services:
       context: ./backend
       dockerfile: sales-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -89,6 +104,9 @@ services:
       context: ./backend
       dockerfile: finance-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -98,6 +116,9 @@ services:
       context: ./backend
       dockerfile: hrms-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
@@ -107,6 +128,9 @@ services:
       context: ./backend
       dockerfile: enquiry-service/Dockerfile
     environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}

@@ -4,9 +4,9 @@ spring:
   application:
     name: finance-service
   datasource:
-    url: jdbc:postgresql://postgres:5432/${POSTGRES_DB:erp}
-    username: ${POSTGRES_USER:erp}
-    password: ${POSTGRES_PASSWORD:erp}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:erp}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: validate
