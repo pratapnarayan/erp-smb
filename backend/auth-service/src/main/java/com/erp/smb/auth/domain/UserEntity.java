@@ -11,7 +11,7 @@ public class UserEntity {
     private String username;
     @Column(nullable = false)
     private String password;
-    @Column(nullable = false)
+    @Column(name = "roles", nullable = false)
     private String role;
     public Long getId() {return id;}
     public void setId(Long id) {this.id = id;}

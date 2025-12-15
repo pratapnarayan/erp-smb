@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -10,20 +10,26 @@ const columns = [
   { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Active' ? 'green' : 'red'}>{v}</Badge> },
 ];
 
-const initialData = [
-  { name: 'Jane Doe', role: 'Accountant', dept: 'Finance', status: 'Active' },
-  { name: 'John Smith', role: 'Warehouse Lead', dept: 'Operations', status: 'Active' },
-  { name: 'Ava Chen', role: 'Sales Rep', dept: 'Sales', status: 'Inactive' },
-];
+const initialData = [];
+
+import http from '../api/clients/http.js';
 
 export default function HRMS() {
   const [rows, setRows] = useState(initialData);
   const [form, setForm] = useState({ name: '', role: '', dept: 'Sales', status: 'Active' });
 
-  const addRow = (e) => {
+  useEffect(() => {
+    (async () => {
+      const { data } = await http.get('/hrms', { params: { page: 0, size: 50 } });
+      setRows(data.content || []);
+    })();
+  }, []);
+
+  const addRow = async (e) => {
     e.preventDefault();
     if (!form.name || !form.role) return;
-    setRows([{ ...form }, ...rows]);
+    const { data } = await http.post('/hrms', form);
+    setRows([data, ...rows]);
     setForm({ name: '', role: '', dept: 'Sales', status: 'Active' });
   };
 

@@ -11,13 +11,18 @@ const columns = [
   { key: 'amount', label: 'Amount' },
 ];
 
-const data = [
-  { invoice: 'INV-2045', customer: 'Umbrella Corp', status: 'Paid', due: '2025-11-20', amount: '₹1,980.00' },
-  { invoice: 'INV-2044', customer: 'Hooli', status: 'Draft', due: '2025-11-22', amount: '₹760.00' },
-  { invoice: 'INV-2043', customer: 'Stark Industries', status: 'Overdue', due: '2025-10-15', amount: '₹12,600.00' },
-];
+import http from '../api/clients/http.js';
+
+const data = [];
 
 export default function Sales() {
+  const [rows, setRows] = React.useState([]);
+  React.useEffect(() => {
+    (async () => {
+      const { data } = await http.get('/sales', { params: { page: 0, size: 50 } });
+      setRows(data.content || []);
+    })();
+  }, []);
   return (
     <div className="grid cols-1">
       <FrostedCard
@@ -28,7 +33,7 @@ export default function Sales() {
           <button className="topbar-btn">Export</button>
         </>}
       >
-        <DataTable columns={columns} rows={data} />
+        <DataTable columns={columns} rows={rows} />
       </FrostedCard>
     </div>
   );

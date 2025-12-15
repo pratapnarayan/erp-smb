@@ -1,32 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
 
+import http from '../api/clients/http.js';
+
 const columns = [
-  { key: 'id', label: 'Order #' },
+  { key: 'code', label: 'Order #' },
   { key: 'customer', label: 'Customer' },
   { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Paid' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge> },
   { key: 'total', label: 'Total' },
-  { key: 'date', label: 'Date' },
+  { key: 'orderDate', label: 'Date' },
 ];
 
-const initialData = [
-  { id: 'SO-1051', customer: 'Acme Co', status: 'Paid', total: '₹1,240.00', date: '2025-11-03' },
-  { id: 'SO-1050', customer: 'Globex', status: 'Pending', total: '₹520.00', date: '2025-11-02' },
-  { id: 'SO-1049', customer: 'Initech', status: 'Overdue', total: '₹2,100.00', date: '2025-11-01' },
-];
+const initialData = [];
 
 export default function Orders() {
   const [rows, setRows] = useState(initialData);
   const [form, setForm] = useState({ customer: '', status: 'Pending', total: '', date: '' });
 
-  const addRow = (e) => {
+  useEffect(() => {
+    (async () => {
+      const { data } = await http.get('/orders', { params: { page: 0, size: 50 } });
+      setRows(data.content || []);
+    })();
+  }, []);
+
+  const addRow = async (e) => {
     e.preventDefault();
     if (!form.customer || !form.total || !form.date) return;
-    const id = `SO-${Math.floor(1000 + Math.random() * 9000)}`;
-    const total = form.total.startsWith('$') ? form.total : `$${Number(form.total).toFixed(2)}`;
-    setRows([{ id, customer: form.customer, status: form.status, total, date: form.date }, ...rows]);
+    const payload = {
+      code: `SO-${Math.floor(1000 + Math.random() * 9000)}`,
+      customer: form.customer,
+      status: form.status,
+      total: Number(form.total),
+      orderDate: form.date,
+    };
+    const { data } = await http.post('/orders', payload);
+    setRows([data, ...rows]);
     setForm({ customer: '', status: 'Pending', total: '', date: '' });
   };
 

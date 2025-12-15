@@ -11,17 +11,20 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-  private final ItemRepository repo;
-  public ProductController(ItemRepository repo){this.repo = repo;}
+    private final ItemRepository repo;
 
-  @GetMapping
-  public ResponseEntity<PageResponse<Item>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
-    var p = repo.findAll(PageRequest.of(page, size));
-    return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
-  }
+    public ProductController(ItemRepository repo) {
+        this.repo = repo;
+    }
 
-  @PostMapping
-  public Item create(@RequestBody @Valid Item item){
-    return repo.save(item);
-  }
+    @GetMapping
+    public ResponseEntity<PageResponse<Item>> list(@RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "20") int size) {
+        var p = repo.findAll(PageRequest.of(page, size));
+        return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
+    }
+
+    @PostMapping
+    public Item create(@RequestBody @Valid Item item) {
+        return repo.save(item);
+    }
 }

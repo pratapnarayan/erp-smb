@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -11,21 +11,27 @@ const columns = [
   { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Open' ? 'amber' : v === 'Closed' ? 'green' : 'gray'}>{v}</Badge> },
 ];
 
-const initialData = [
-  { id: 'ENQ-1001', customer: 'Acme Co', channel: 'Email', subject: 'Pricing question', status: 'Open' },
-  { id: 'ENQ-1002', customer: 'Globex', channel: 'Phone', subject: 'Bulk order', status: 'Pending' },
-  { id: 'ENQ-1003', customer: 'Initech', channel: 'Web', subject: 'Demo request', status: 'Closed' },
-];
+const initialData = [];
+
+import http from '../api/clients/http.js';
 
 export default function Enquiry() {
   const [rows, setRows] = useState(initialData);
   const [form, setForm] = useState({ customer: '', channel: 'Email', subject: '', status: 'Open' });
 
-  const addRow = (e) => {
+  useEffect(() => {
+    (async () => {
+      const { data } = await http.get('/enquiry', { params: { page: 0, size: 50 } });
+      setRows(data.content || []);
+    })();
+  }, []);
+
+  const addRow = async (e) => {
     e.preventDefault();
     if (!form.customer || !form.subject) return;
-    const id = `ENQ-${Math.floor(1000 + Math.random() * 9000)}`;
-    setRows([{ id, ...form }, ...rows]);
+    const payload = { code: `ENQ-${Math.floor(1000 + Math.random() * 9000)}`, ...form };
+    const { data } = await http.post('/enquiry', payload);
+    setRows([data, ...rows]);
     setForm({ customer: '', channel: 'Email', subject: '', status: 'Open' });
   };
 

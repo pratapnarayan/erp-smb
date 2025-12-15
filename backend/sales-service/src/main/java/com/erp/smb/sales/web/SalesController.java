@@ -10,7 +10,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/sales")
 public class SalesController {
-  private final InvoiceRepository repo; public SalesController(InvoiceRepository repo){this.repo=repo;}
-  @GetMapping
-  public ResponseEntity<PageResponse<Invoice>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){ var p=repo.findAll(PageRequest.of(page,size)); return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages())); }
+    private final InvoiceRepository repo;
+
+    public SalesController(InvoiceRepository repo) {
+        this.repo = repo;
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<Invoice>> list(@RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "20") int size) {
+        var p = repo.findAll(PageRequest.of(page, size));
+        return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
+    }
 }

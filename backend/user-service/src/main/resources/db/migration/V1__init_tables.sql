@@ -1,1 +1,7 @@
-CREATE SCHEMA IF NOT EXISTS users;\nCREATE TABLE IF NOT EXISTS users.user_profiles (\n    id SERIAL PRIMARY KEY,\n    username VARCHAR(100) UNIQUE NOT NULL,\n    full_name VARCHAR(255),\n    role VARCHAR(50) NOT NULL\n);\n
+CREATE SCHEMA IF NOT EXISTS users;
+CREATE TABLE IF NOT EXISTS users.user_profiles (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    full_name VARCHAR(255),
+    role VARCHAR(50) NOT NULL
+);

@@ -27,7 +27,11 @@ export default function App() {
   const [route, setRoute] = useState('dashboard');
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user')) || null; } catch { return null; }
+    try {
+      const u = JSON.parse(localStorage.getItem('user')) || null;
+      const at = localStorage.getItem('accessToken');
+      return at ? u : null;
+    } catch { return null; }
   });
 
   const Page = useMemo(() => {
@@ -78,7 +82,7 @@ export default function App() {
       onNavigate={setRoute}
       routes={routes}
       user={user}
-      onLogout={() => { setUser(null); localStorage.removeItem('user'); }}
+      onLogout={() => { setUser(null); localStorage.removeItem('user'); localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); }}
     >
       {React.cloneElement(Page, { currentRole: user.role })}
     </AppShell>

@@ -1,34 +1,37 @@
 import React, { useState } from 'react';
 import logoUrl from '../assets/logo.svg';
-
-const allowed = ['admin', 'sales', 'warehouse', 'finance', 'hr'];
-const roleMap = {
-  admin: 'ADMIN',
-  sales: 'SALES',
-  warehouse: 'WAREHOUSE',
-  finance: 'FINANCE',
-  hr: 'HR',
-};
+import http from '../api/clients/http.js';
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const u = username.trim().toLowerCase();
-    const p = password.trim().toLowerCase();
-    if (!allowed.includes(u)) {
-      setError('Unknown user. Try admin, sales, warehouse, finance, or hr.');
+    setError('');
+    const u = username.trim();
+    const p = password.trim();
+    if (!u || !p) {
+      setError('Please enter username and password.');
       return;
     }
-    if (u !== p) {
-      setError('Invalid credentials. Use same user and password, e.g., admin/admin.');
-      return;
+    setLoading(true);
+    try {
+      const { data } = await http.post('/auth/login', { username: u, password: p });
+      // Expected: { accessToken, refreshToken, username, role }
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      const user = { username: data.username, role: data.role };
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin(user);
+    } catch (err) {
+      console.error('Login failed', err);
+      setError('Invalid credentials or server unavailable.');
+    } finally {
+      setLoading(false);
     }
-    const user = { username: u, role: roleMap[u] };
-    onLogin(user);
   };
 
   return (
