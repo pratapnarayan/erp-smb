@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class HrmsController {
   private final EmployeeRepository repo; public HrmsController(EmployeeRepository repo){this.repo=repo;}
   @GetMapping
-  public ResponseEntity<PageResponse<Employee>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){ var p=repo.findAll(PageRequest.of(page,size)); return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages())); }
+  public ResponseEntity<PageResponse<Employee>> list(@RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "20") int size){ var p=repo.findAll(PageRequest.of(page,size)); return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages())); }
   @PostMapping
   public Employee create(@RequestBody Employee e){ return repo.save(e);} 
 }
