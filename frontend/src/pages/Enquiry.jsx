@@ -39,10 +39,22 @@ import http from '../api/clients/http.js';
 export default function Enquiry() {
   const [rows, setRows] = useState(initialData);
   const [form, setForm] = useState({ customer: '', channel: 'Email', subject: '', status: 'Open' });
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
-  const load = useCallback(async () => {
-    const { data } = await http.get('/enquiry', { params: { page: 0, size: 50 } });
-    setRows(data.content || []);
+  const load = useCallback(async (p, s) => {
+    const { data } = await http.get('/enquiry', { params: { page: p, size: s } });
+    const nextTotalPages = data?.totalPages ?? 0;
+    const normalizedTotalPages = nextTotalPages > 0 ? nextTotalPages : 1;
+    if (nextTotalPages > 0 && p >= nextTotalPages) {
+      setPage(nextTotalPages - 1);
+      return;
+    }
+    setRows(data?.content || []);
+    setTotalPages(normalizedTotalPages);
+    setTotalElements(data?.totalElements ?? 0);
   }, []);
 
   const updateStatus = useCallback(async (id, uiStatus) => {
@@ -52,8 +64,8 @@ export default function Enquiry() {
 
   const deleteEnquiry = useCallback(async (id) => {
     await http.delete(`/enquiry/${id}`);
-    setRows((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+    await load(page, size);
+  }, [load, page, size]);
 
   const columns = useMemo(() => [
     { key: 'id', label: 'Enquiry #' },
@@ -91,17 +103,18 @@ export default function Enquiry() {
 
   useEffect(() => {
     (async () => {
-      await load();
+      await load(page, size);
     })();
-  }, [load]);
+  }, [load, page, size]);
 
   const addRow = async (e) => {
     e.preventDefault();
     if (!form.customer || !form.subject) return;
     const payload = { code: `ENQ-${Math.floor(1000 + Math.random() * 9000)}`, ...form };
-    const { data } = await http.post('/enquiry', payload);
-    setRows([data, ...rows]);
+    await http.post('/enquiry', payload);
     setForm({ customer: '', channel: 'Email', subject: '', status: 'Open' });
+    setPage(0);
+    await load(0, size);
   };
 
   return (
@@ -140,7 +153,37 @@ export default function Enquiry() {
         </form>
       </FrostedCard>
 
-      <FrostedCard title="Enquiries" subtitle="Latest enquiries">
+      <FrostedCard
+        title="Enquiries"
+        subtitle={`Latest enquiries (${totalElements} records)`}
+        actions={
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="btn" type="button" disabled={page <= 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+              Prev
+            </button>
+            <div style={{ minWidth: 110, textAlign: 'center' }}>
+              Page {page + 1} / {totalPages}
+            </div>
+            <button className="btn" type="button" disabled={page >= totalPages - 1} onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}>
+              Next
+            </button>
+            <select
+              value={size}
+              onChange={(e) => {
+                const nextSize = Number(e.target.value);
+                setSize(nextSize);
+                setPage(0);
+              }}
+              style={{ padding: '6px 8px', borderRadius: 8 }}
+            >
+              <option value={10}>10 / page</option>
+              <option value={20}>20 / page</option>
+              <option value={50}>50 / page</option>
+              <option value={100}>100 / page</option>
+            </select>
+          </div>
+        }
+      >
         <DataTable columns={columns} rows={rows} />
       </FrostedCard>
     </div>
