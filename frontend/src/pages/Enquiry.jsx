@@ -1,15 +1,36 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
 
-const columns = [
-  { key: 'id', label: 'Enquiry #' },
-  { key: 'customer', label: 'Customer' },
-  { key: 'channel', label: 'Channel' },
-  { key: 'subject', label: 'Subject' },
-  { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Open' ? 'amber' : v === 'Closed' ? 'green' : 'gray'}>{v}</Badge> },
-];
+const toUiStatus = (status) => {
+  const s = String(status || '').trim().toUpperCase();
+  if (s === 'OPEN') return 'Open';
+  if (s === 'PENDING' || s === 'IN_PROGRESS') return 'Pending';
+  if (s === 'CLOSED' || s === 'RESOLVED') return 'Closed';
+  return status || '';
+};
+
+const toApiStatus = (uiStatus) => {
+  const s = String(uiStatus || '').trim().toLowerCase();
+  if (s === 'open') return 'OPEN';
+  if (s === 'pending') return 'IN_PROGRESS';
+  if (s === 'closed') return 'CLOSED';
+  return uiStatus;
+};
+
+const statusColor = (status) => {
+  const s = String(status || '').trim().toLowerCase();
+  if (s === 'open' || s === 'opened' || s === 'open'.toLowerCase()) return 'amber';
+  if (s === 'closed' || s === 'resolved') return 'green';
+  if (s === 'pending' || s === 'in_progress') return 'gray';
+  return 'gray';
+};
+
+const canDelete = (status) => {
+  const s = String(status || '').trim().toLowerCase();
+  return s === 'closed' || s === 'resolved';
+};
 
 const initialData = [];
 
@@ -19,12 +40,60 @@ export default function Enquiry() {
   const [rows, setRows] = useState(initialData);
   const [form, setForm] = useState({ customer: '', channel: 'Email', subject: '', status: 'Open' });
 
+  const load = useCallback(async () => {
+    const { data } = await http.get('/enquiry', { params: { page: 0, size: 50 } });
+    setRows(data.content || []);
+  }, []);
+
+  const updateStatus = useCallback(async (id, uiStatus) => {
+    const { data } = await http.put(`/enquiry/${id}/status`, { status: toApiStatus(uiStatus) });
+    setRows((prev) => prev.map((r) => (r.id === id ? data : r)));
+  }, []);
+
+  const deleteEnquiry = useCallback(async (id) => {
+    await http.delete(`/enquiry/${id}`);
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const columns = useMemo(() => [
+    { key: 'id', label: 'Enquiry #' },
+    { key: 'customer', label: 'Customer' },
+    { key: 'channel', label: 'Channel' },
+    { key: 'subject', label: 'Subject' },
+    { key: 'status', label: 'Status', render: (v) => <Badge color={statusColor(v)}>{toUiStatus(v)}</Badge> },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_, row) => (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select
+            value={toUiStatus(row.status) || 'Open'}
+            onChange={(e) => updateStatus(row.id, e.target.value)}
+            style={{ padding: '6px 8px', borderRadius: 8 }}
+          >
+            <option>Open</option>
+            <option>Pending</option>
+            <option>Closed</option>
+          </select>
+          <button
+            className="btn"
+            type="button"
+            disabled={!canDelete(row.status)}
+            onClick={() => deleteEnquiry(row.id)}
+            title={canDelete(row.status) ? 'Delete enquiry' : 'Only Closed enquiries can be deleted'}
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ], [deleteEnquiry, updateStatus]);
+
   useEffect(() => {
     (async () => {
-      const { data } = await http.get('/enquiry', { params: { page: 0, size: 50 } });
-      setRows(data.content || []);
+      await load();
     })();
-  }, []);
+  }, [load]);
 
   const addRow = async (e) => {
     e.preventDefault();
