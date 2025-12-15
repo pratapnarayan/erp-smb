@@ -15,6 +15,35 @@ const cols = [
 ];
 
 export default function Dashboard() {
+  const [kpis, setKpis] = React.useState([]);
+  const [rows, setRows] = React.useState([]);
+
+  React.useEffect(() => {
+    // Load KPIs
+    (async () => {
+      try {
+        const { data } = await http.get('/finance/kpis');
+        // Backend returns a map of KPI objects; convert to array
+        const items = Array.isArray(data) ? data : Object.values(data || {});
+        setKpis(items);
+      } catch (e) {
+        console.error('Failed to load KPIs', e);
+        setKpis([]);
+      }
+    })();
+
+    // Load recent orders
+    (async () => {
+      try {
+        const { data } = await http.get('/orders', { params: { page: 0, size: 10 } });
+        setRows(data?.content || data?.items || []);
+      } catch (e) {
+        console.error('Failed to load orders', e);
+        setRows([]);
+      }
+    })();
+  }, []);
+
   return (
     <div className="grid cols-4">
       {kpis.map((k) => (

@@ -24,7 +24,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (jwtUtils.validate(token)) {
                 var claims = jwtUtils.parse(token).getBody();
                 List<String> roles = (List<String>) claims.getOrDefault("roles", List.of());
-                UserDetails principal = User.withUsername(claims.getSubject()).password("").roles(roles.toArray(String[]::new)).build();
+                // Use authorities to accept roles that may already be prefixed with ROLE_
+                java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = roles.stream()
+                        .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                        .toList();
+                UserDetails principal = User.withUsername(claims.getSubject())
+                        .password("")
+                        .authorities(authorities)
+                        .build();
                 var authToken = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

@@ -13,7 +13,10 @@ public class OrderController {
   private final SalesOrderRepository repo;
   public OrderController(SalesOrderRepository repo){this.repo=repo;}
   @GetMapping
-  public ResponseEntity<PageResponse<SalesOrder>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size){
+  public ResponseEntity<PageResponse<SalesOrder>> list(
+      @RequestParam(name = "page", defaultValue = "0") int page,
+      @RequestParam(name = "size", defaultValue = "20") int size
+  ){
     var p = repo.findAll(PageRequest.of(page,size));
     return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
   }
