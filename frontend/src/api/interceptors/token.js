@@ -1,59 +1,70 @@
 export function attachToken(config){
   const token = localStorage.getItem('accessToken');
-  if (token) config.headers['Authorization'] = `Bearer ${token}`;
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
   return config;
 }
 
-let isRefreshing = false;
-let pending = [];
+let refreshPromise = null;
 
-function subscribeTokenRefresh(cb){ pending.push(cb); }
-function onRefreshed(newToken){ pending.forEach(cb => cb(newToken)); pending = []; }
+function clearAuthStorage(){
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+}
+
+function notifyLoggedOut(){
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth:logout'));
+  }
+}
 
 export async function handleAuthError(error){
   const status = error?.response?.status;
   const original = error.config || {};
   if ((status === 401 || status === 403) && !original._retry) {
+    original._retry = true;
+
     const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
+    if (!refreshToken || refreshToken === 'undefined' || refreshToken === 'null') {
+      clearAuthStorage();
+      notifyLoggedOut();
       return Promise.reject(error);
     }
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        const resp = await fetch('/api/auth/refresh', {
+
+    try {
+      if (!refreshPromise) {
+        refreshPromise = fetch('/api/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken })
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          localStorage.setItem('accessToken', data.accessToken);
-          onRefreshed(data.accessToken);
-        } else {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          throw new Error('Refresh failed');
-        }
-      } catch (e) {
-        isRefreshing = false;
-        return Promise.reject(error);
+          body: JSON.stringify({ refreshToken }),
+        })
+          .then(async (resp) => {
+            if (!resp.ok) throw new Error('Refresh failed');
+            const data = await resp.json();
+            if (!data?.accessToken) throw new Error('Missing accessToken');
+            localStorage.setItem('accessToken', data.accessToken);
+            return data.accessToken;
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
       }
-      isRefreshing = false;
+
+      const newToken = await refreshPromise;
+      original.headers = original.headers || {};
+      original.headers['Authorization'] = `Bearer ${newToken}`;
+
+      if (!window?.axios) return Promise.reject(error);
+      return window.axios(original);
+    } catch (e) {
+      clearAuthStorage();
+      notifyLoggedOut();
+      return Promise.reject(error);
     }
-    return new Promise((resolve, reject) => {
-      subscribeTokenRefresh((newToken) => {
-        try {
-          original._retry = true;
-          original.headers = original.headers || {};
-          original.headers['Authorization'] = `Bearer ${newToken}`;
-          resolve(window.axios ? window.axios(original) : fetch(original.url || original.baseURL+original.url, original));
-        } catch (e){ reject(e); }
-      });
-    });
   }
+
   return Promise.reject(error);
 }

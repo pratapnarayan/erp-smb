@@ -27,18 +27,33 @@ export default function Inventory() {
   const [size, setSize] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
+  const [error, setError] = useState('');
 
   const load = useCallback(async (p, s) => {
-    const { data } = await http.get('/products', { params: { page: p, size: s } });
-    const nextTotalPages = data?.totalPages ?? 0;
-    const normalizedTotalPages = nextTotalPages > 0 ? nextTotalPages : 1;
-    if (nextTotalPages > 0 && p >= nextTotalPages) {
-      setPage(nextTotalPages - 1);
-      return;
+    setError('');
+    try {
+      const { data } = await http.get('/products', { params: { page: p, size: s } });
+      const nextTotalPages = data?.totalPages ?? 0;
+      const normalizedTotalPages = nextTotalPages > 0 ? nextTotalPages : 1;
+      if (nextTotalPages > 0 && p >= nextTotalPages) {
+        setPage(nextTotalPages - 1);
+        return;
+      }
+      setRows(data?.content || data?.items || []);
+      setTotalPages(normalizedTotalPages);
+      setTotalElements(data?.totalElements ?? 0);
+    } catch (err) {
+      console.error('Failed to load products', err);
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        setError('Your session has expired. Please login again.');
+      } else {
+        setError('Failed to load products.');
+      }
+      setRows([]);
+      setTotalPages(1);
+      setTotalElements(0);
     }
-    setRows(data?.content || data?.items || []);
-    setTotalPages(normalizedTotalPages);
-    setTotalElements(data?.totalElements ?? 0);
   }, []);
 
   const canDelete = (row) => {
@@ -192,6 +207,7 @@ export default function Inventory() {
           </div>
         }
       >
+        {error && <div className="form-error" role="alert">{error}</div>}
         <DataTable columns={tableColumns} rows={rows} />
       </FrostedCard>
     </div>
