@@ -38,7 +38,7 @@ services:
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
     ports:
       - '8080:8080'
-    depends_on: [config-service, discovery-service, auth-service, user-service, product-service, order-service, sales-service, finance-service, hrms-service, enquiry-service]
+    depends_on: [config-service, discovery-service, auth-service, user-service, product-service, order-service, sales-service, finance-service, hrms-service, enquiry-service, reporting-service]
   auth-service:
     build:
       context: ./backend
@@ -134,6 +134,21 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    depends_on: [postgres, config-service, discovery-service]
+  reporting-service:
+    build:
+      context: ./backend
+      dockerfile: reporting-service/Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-erp}
+      DB_USERNAME: ${POSTGRES_USER:-erp}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      REPORTS_STORAGE_DIR: /data/reports
+      REPORTS_MAX_EXPORT_ROWS: ${REPORTS_MAX_EXPORT_ROWS:-1000000}
+      EXPORT_RETENTION_DAYS: ${EXPORT_RETENTION_DAYS:-30}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+    volumes:
+      - ${REPORTS_STORAGE_HOST_DIR:-./data/reports}:/data/reports
     depends_on: [postgres, config-service, discovery-service]
 volumes:
   pgdata: {}

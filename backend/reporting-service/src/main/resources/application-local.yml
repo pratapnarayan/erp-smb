@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/erp
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+    schemas: reporting
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 9100
