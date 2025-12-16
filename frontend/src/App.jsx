@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AppShell from './components/AppShell.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Sales from './pages/Sales.jsx';
@@ -33,6 +33,17 @@ export default function App() {
       return at ? u : null;
     } catch { return null; }
   });
+
+  useEffect(() => {
+    const onLogout = () => {
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    };
+    window.addEventListener('auth:logout', onLogout);
+    return () => window.removeEventListener('auth:logout', onLogout);
+  }, []);
 
   const Page = useMemo(() => {
     switch (route) {
