@@ -1,6 +1,6 @@
 # Comprehensive Project Analysis - ERP SMB UI
 
-**Analysis Date:** December 2, 2025  
+**Analysis Date:** December 20, 2025  
 **Project:** ERP SMB (Small and Medium Business) Platform  
 **Repository:** pratapnarayan/erp-smb
 
@@ -19,6 +19,26 @@ This is a **full-stack Enterprise Resource Planning (ERP) system** designed for 
 - **Deployment:** Docker Compose ready with multi-stage builds
 
 ---
+
+## 🔄 Recent Changes (since Dec 2, 2025)
+
+- Frontend
+  - Added axios dependency to package.json
+  - Vite dev server proxy configured to gateway at http://localhost:8080
+- Backend
+  - Added Reporting Service (port 9100) with endpoints under /v1/reports:
+    - GET /definitions?category=...
+    - GET /metrics?period=month|week
+    - POST /run (queue a report run with format CSV|XLSX|PDF)
+    - GET /runs (paged)
+    - GET /runs/{id}
+    - GET /runs/{runId}/exports and GET /exports/{id}/download
+  - Explicit @RequestParam names added in ReportsController for category and period
+  - Root docker-compose now includes reporting-service with persistent export storage at ./data/reports, and Eureka client config via SPRING_APPLICATION_JSON
+  - Gateway route added for reports: /api/reports/** -> http://localhost:9100 (stripPrefix: true)
+- Build/Config
+  - Parent backend POM cleaned and modules enumerated correctly
+  - All service application.yml files are valid YAML (no escaped newlines)
 
 ## 🏗️ Architecture Overview
 
@@ -277,6 +297,7 @@ The gateway service proxies requests to backend services:
 | `/api/finance/**` | finance-service | 8086 |
 | `/api/hrms/**` | hrms-service | 8087 |
 | `/api/enquiry/**` | enquiry-service | 8088 |
+| `/api/reports/**` | reporting-service | 9100 |
 
 ### Frontend API Client Structure
 ```javascript
@@ -352,7 +373,7 @@ App (theme, auth, routing)
 ## 🐳 Docker & Deployment
 
 ### Docker Compose Services
-The `docker-compose.yml` orchestrates 13 services:
+The `docker-compose.yml` orchestrates 14 services:
 
 **Infrastructure Services:**
 1. **postgres** - PostgreSQL 16 database
@@ -370,6 +391,7 @@ The `docker-compose.yml` orchestrates 13 services:
 11. **finance-service** - Finance
 12. **hrms-service** - HR
 13. **enquiry-service** - Enquiries
+14. **reporting-service** - Reporting
 
 ### Multi-Stage Dockerfile Pattern
 Each service uses a consistent Dockerfile:
@@ -633,7 +655,7 @@ The application covers these ERP modules:
 | **HRMS** | ✅ Implemented | Employee management |
 | **Enquiry/CRM** | ✅ Implemented | Lead tracking |
 | **Inventory** | ⚠️ Partial | UI exists, backend unclear |
-| **Reporting** | ❌ Not detected | No dedicated reporting module |
+| **Reporting** | ✅ Implemented | Report definitions, run queueing, metrics, CSV exports |
 | **Notifications** | ❌ Not detected | No notification service |
 | **Audit Logging** | ❌ Not detected | No audit trail |
 
