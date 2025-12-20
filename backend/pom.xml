@@ -51,6 +51,7 @@
     <module>finance-service</module>
     <module>hrms-service</module>
     <module>enquiry-service</module>
+    <module>reporting-service</module>
   </modules>
   <dependencyManagement>
     <dependencies>

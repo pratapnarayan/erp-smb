@@ -13,3 +13,4 @@ export const salesApi = { list: (page=0,size=20) => http.get(`/sales?page=${page
 export const financeApi = { list: (page=0,size=20) => http.get(`/finance?page=${page}&size=${size}`).then(r=>r.data), create: (t)=> http.post('/finance', t).then(r=>r.data), kpis: ()=> http.get('/finance/kpis').then(r=>r.data) };
 export const hrmsApi = { list: (page=0,size=20) => http.get(`/hrms?page=${page}&size=${size}`).then(r=>r.data), create: (e)=> http.post('/hrms', e).then(r=>r.data) };
 export const enquiryApi = { list: (page=0,size=20) => http.get(`/enquiry?page=${page}&size=${size}`).then(r=>r.data), create: (e)=> http.post('/enquiry', e).then(r=>r.data) };
+export { reportingApi } from './reports.js';

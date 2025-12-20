@@ -1,0 +1,6 @@
+proxy:
+  routes:
+    - id: reports
+      path: /api/reports/**
+      url: http://localhost:9100
+      stripPrefix: true

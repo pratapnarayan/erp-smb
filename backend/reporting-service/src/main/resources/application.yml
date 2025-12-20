@@ -1,0 +1,38 @@
+server:
+  port: ${SERVER_PORT:9100}
+  servlet:
+    context-path: /
+spring:
+  application:
+    name: reporting-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/erp}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: reporting
+  flyway:
+    enabled: true
+    schemas: reporting
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+reports:
+  storageDir: ${REPORTS_STORAGE_DIR:/data/reports}
+  maxExportRows: ${REPORTS_MAX_EXPORT_ROWS:1000000}
+  exportRetentionDays: ${EXPORT_RETENTION_DAYS:30}
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    access-ttl: 3600

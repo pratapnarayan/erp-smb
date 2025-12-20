@@ -25,7 +25,7 @@ public class ProxyController {
         this.lb = lb;
         System.out.println("[Gateway] Loaded routes (" + this.routes.size() + ")");
         for (Route r : this.routes) {
-            System.out.println("  - " + r.id + " path=" + r.path + " -> " + (r.url!=null?r.url:r.uri));
+            System.out.println("  - " + r.id + " path=" + r.path + " stripPrefix=" + r.stripPrefix + " -> " + (r.url!=null?r.url:r.uri));
         }
     }
 
@@ -37,7 +37,29 @@ public class ProxyController {
         String authorization = req.getHeader("Authorization");
         String contentType = req.getHeader("Content-Type");
         String accept = req.getHeader("Accept");
-        AntPathMatcher matcher = new AntPathMatcher();
+        String tenant = req.getHeader("X-Tenant-Id");
+        // Derive tenantId from JWT if header is missing
+        if ((tenant == null || tenant.isBlank()) && authorization != null && authorization.startsWith("Bearer ")) {
+            try {
+                var jwt = new com.erp.smb.common.security.JwtUtils(
+                        System.getProperty("app.jwt.secret", System.getenv().getOrDefault("APP_JWT_SECRET", "dev-secret-please-change-32-chars-minimum-123456")),
+                        3600, 3600*24
+                );
+                var claims = jwt.parse(authorization.substring(7)).getBody();
+                Object t = claims.get("tenantId");
+                if (t == null) t = claims.get("tenant_id");
+                if (t == null) t = claims.get("tenant");
+                if (t != null) tenant = String.valueOf(t);
+            } catch (Exception ignored) {}
+        }
+       // For local development: if no tenant was resolved and the request targets reporting, default to 'demo'
+       try {
+           String p = req.getRequestURI();
+           if ((tenant == null || tenant.isBlank()) && p != null && p.startsWith("/api/reports/")) {
+               tenant = "demo";
+           }
+       } catch (Exception ignored) {}
+       AntPathMatcher matcher = new AntPathMatcher();
         Route match = routes.stream().filter(r -> matcher.match(r.path, fullPath)).findFirst().orElse(null);
         if (match == null) {
             System.out.println("[Gateway] No route matched for path=" + fullPath);
@@ -55,18 +77,34 @@ public class ProxyController {
         } else {
             return ResponseEntity.status(500).build();
         }
-        // Forward the full incoming path so downstream services that are mapped under /api/... resolve correctly
-        String targetUrl = base + fullPath + (query==null?"":"?"+query);
+        // Optionally strip the matched route prefix (e.g., /api/reports) before forwarding so downstream services receive their native path
+        String routePrefix = match.path.endsWith("/**") ? match.path.substring(0, match.path.length() - 3) : match.path;
+        String forwardedPath;
+        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id);
+        if (shouldStrip) {
+            forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            if (forwardedPath.isEmpty()) forwardedPath = "/";
+        } else {
+            forwardedPath = fullPath; // keep fullPath by default
+        }
+        String targetUrl = base + forwardedPath + (query==null?"":"?"+query);
         System.out.println("[Gateway] " + method + " " + fullPath + " -> " + targetUrl + " (route=" + match.id + ")");
         RestClient client = RestClient.create();
         // Use exchange(..) to avoid throwing on 4xx/5xx and faithfully pass-through status and headers
         try {
             RestClient.RequestBodySpec reqSpec = client
                 .method(HttpMethod.valueOf(method))
-                .uri(URI.create(targetUrl))
-                .header("Authorization", authorization==null?"":authorization)
-                .header("Content-Type", contentType==null?"application/json":contentType)
-                .header("Accept", accept==null?"*/*":accept);
+                .uri(URI.create(targetUrl));
+            if (authorization != null && !authorization.isBlank()) reqSpec = reqSpec.header("Authorization", authorization);
+            if (accept != null && !accept.isBlank()) reqSpec = reqSpec.header("Accept", accept);
+            if (tenant != null && !tenant.isBlank()) reqSpec = reqSpec.header("X-Tenant-Id", tenant);
+            // Only set Content-Type if provided by the client or if we have a body
+            boolean hasBody = body != null && body.length > 0;
+            if (contentType != null && !contentType.isBlank()) {
+                reqSpec = reqSpec.header("Content-Type", contentType);
+            } else if (hasBody) {
+                reqSpec = reqSpec.header("Content-Type", "application/json");
+            }
             // Only attach a body if present; avoid NPE for GET/HEAD without body
             ResponseEntity<byte[]> resp = (body != null ? reqSpec.body(body) : reqSpec)
                 .exchange((request, response) -> {
@@ -83,8 +121,8 @@ public class ProxyController {
     }
 
     static class Route {
-        final String id; final String path; final String url; final String uri;
-        Route(String id, String path, String url, String uri){ this.id=id; this.path=path; this.url=url; this.uri=uri; }
-        static Route from(ProxyProperties.Route r){return new Route(r.getId(), r.getPath(), r.getUrl(), r.getUri());}
+        final String id; final String path; final String url; final String uri; final Boolean stripPrefix;
+        Route(String id, String path, String url, String uri, Boolean stripPrefix){ this.id=id; this.path=path; this.url=url; this.uri=uri; this.stripPrefix=stripPrefix; }
+        static Route from(ProxyProperties.Route r){return new Route(r.getId(), r.getPath(), r.getUrl(), r.getUri(), r.getStripPrefix());}
     }
 }

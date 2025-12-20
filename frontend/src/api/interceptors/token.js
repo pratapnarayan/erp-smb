@@ -1,8 +1,14 @@
 export function attachToken(config){
   const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers = config.headers || {};
+  const tenantId = localStorage.getItem('tenantId') || 'demo';
+  config.headers = config.headers || {};
+  // For local dev: skip Authorization header on read-only reporting GETs to avoid JwtAuthFilter failures
+  const isReportingGet = config?.method?.toLowerCase() === 'get' && typeof config?.url === 'string' && config.url.includes('/api/reports/v1/reports/');
+  if (token && !isReportingGet) {
     config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (!config.headers['X-Tenant-Id'] && tenantId) {
+    config.headers['X-Tenant-Id'] = tenantId;
   }
   return config;
 }

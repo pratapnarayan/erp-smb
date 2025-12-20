@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/erp
+    username: postgres
+    password: postgres
+  flyway:
+    enabled: true
+    schemas: reporting
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    access-ttl: 3600
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  port: 9100
+
+app:
+  security:
+    permit-all: true
