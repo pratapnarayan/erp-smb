@@ -6,6 +6,11 @@ spring:
   flyway:
     enabled: true
     schemas: reporting
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    access-ttl: 3600
 ---
 spring:
   config:
@@ -13,3 +18,7 @@ spring:
       on-profile: local
 server:
   port: 9100
+
+app:
+  security:
+    permit-all: true

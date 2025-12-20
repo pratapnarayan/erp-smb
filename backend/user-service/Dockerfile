@@ -1,9 +1,9 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
-WORKDIR /app
+WORKDIR /workspace
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn -pl user-service -am -DskipTests clean package
 
 FROM eclipse-temurin:21-jre
-WORKDIR /opt/app
-COPY --from=build /app/backend/user-service/target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/opt/app/app.jar"]
+WORKDIR /app
+COPY --from=build /workspace/user-service/target/user-service-*.jar app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]

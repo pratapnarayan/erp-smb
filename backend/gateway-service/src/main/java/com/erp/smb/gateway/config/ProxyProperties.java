@@ -24,6 +24,7 @@ public class ProxyProperties {
     private String path;
     private String url;
     private String uri;
+    private Boolean stripPrefix; // optional per-route behavior
 
     public String getId() {
       return id;
@@ -55,6 +56,14 @@ public class ProxyProperties {
 
     public void setUri(String uri) {
       this.uri = uri;
+    }
+
+    public Boolean getStripPrefix() {
+      return stripPrefix;
+    }
+
+    public void setStripPrefix(Boolean stripPrefix) {
+      this.stripPrefix = stripPrefix;
     }
   }
 }

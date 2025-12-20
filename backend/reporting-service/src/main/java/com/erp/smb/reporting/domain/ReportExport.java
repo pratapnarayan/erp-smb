@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "report_exports")
+@Table(name = "report_exports", schema = "reporting")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ReportExport {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

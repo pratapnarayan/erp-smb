@@ -46,6 +46,8 @@ public class AuthController {
         }
         java.util.Map<String, Object> claims = new java.util.HashMap<>();
         claims.put("roles", java.util.List.of(user.getRole()));
+        // Include a demo tenantId for local testing; adjust as needed for multi-tenant setups
+        claims.put("tenantId", "demo");
         String access = jwtUtils.generateAccessToken(user.getUsername(), claims);
         String refresh = jwtUtils.generateRefreshToken(user.getUsername(), claims);
         return ResponseEntity.ok(Map.of("accessToken", access, "refreshToken", refresh, "username", user.getUsername(), "role", user.getRole()));
@@ -60,6 +62,9 @@ public class AuthController {
         var roles = (java.util.List<String>) claims.get("roles");
         java.util.Map<String, Object> newClaims = new java.util.HashMap<>();
         newClaims.put("roles", roles);
+        // Preserve tenantId in the refreshed access token
+        Object tenant = claims.get("tenantId");
+        if (tenant != null) newClaims.put("tenantId", tenant.toString());
         String access = jwtUtils.generateAccessToken(username, newClaims);
         return ResponseEntity.ok(Map.of("accessToken", access));
     }

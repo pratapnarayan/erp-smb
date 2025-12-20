@@ -20,14 +20,14 @@ public class ReportsController {
     private final MetricsService metricsService;
 
     @GetMapping("/definitions")
-    public ResponseEntity<List<ReportDefinition>> getDefinitions(@RequestParam(required = false) String category) {
+    public ResponseEntity<List<ReportDefinition>> getDefinitions(@RequestParam(name = "category", required = false) String category) {
         return ResponseEntity.ok(definitionService.getActiveDefinitions(category));
     }
 
     @GetMapping("/metrics")
-    public ResponseEntity<List<Map<String, Object>>> metrics(@RequestParam(defaultValue = "month") String period,
-                                                             Principal principal) {
-        String tenantId = "tenant"; // TODO: extract from JWT claims
+    public ResponseEntity<List<Map<String, Object>>> metrics(@RequestParam(name = "period", defaultValue = "month") String period,
+                                                             jakarta.servlet.http.HttpServletRequest request) {
+        String tenantId = com.erp.smb.reporting.util.TenantUtils.getTenantId(request);
         return ResponseEntity.ok(metricsService.getDashboardMetrics(tenantId, period));
     }
 }

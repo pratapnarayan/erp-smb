@@ -42,3 +42,6 @@ proxy:
     - id: enquiry
       path: /api/enquiry/**
       url: http://localhost:8088
+    - id: reports
+      path: /api/reports/**
+      url: http://localhost:9100

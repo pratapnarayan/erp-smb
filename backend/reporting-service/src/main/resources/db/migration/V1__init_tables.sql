@@ -58,12 +58,12 @@ CREATE TABLE IF NOT EXISTS sales_order_facts (
 CREATE TABLE IF NOT EXISTS sales_daily_summary (
     date DATE NOT NULL,
     tenant_id TEXT NOT NULL,
-    region_id BIGINT,
-    product_id BIGINT,
+    region_id BIGINT NOT NULL DEFAULT 0,
+    product_id BIGINT NOT NULL DEFAULT 0,
     revenue NUMERIC,
     qty NUMERIC,
     orders_count BIGINT,
-    PRIMARY KEY(date, tenant_id, COALESCE(region_id,0), COALESCE(product_id,0))
+    PRIMARY KEY(date, tenant_id, region_id, product_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_sales_facts_tenant_date ON sales_order_facts(tenant_id, order_date);

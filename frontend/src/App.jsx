@@ -10,6 +10,7 @@ import Finance from './pages/Finance.jsx';
 import HRMS from './pages/HRMS.jsx';
 import Admin from './pages/Admin.jsx';
 import Login from './pages/Login.jsx';
+import Reporting from './pages/Reporting.jsx';
 
 const routes = [
   { key: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -19,6 +20,7 @@ const routes = [
   { key: 'inventory', label: 'Inventory', icon: '📦' },
   { key: 'finance', label: 'Finance', icon: '💼' },
   { key: 'hrms', label: 'HRMS', icon: '👥' },
+  { key: 'reporting', label: 'Reporting', icon: '📈' },
   { key: 'admin', label: 'Admin', icon: '🛡️' },
   { key: 'settings', label: 'Settings', icon: '⚙️' },
 ];
@@ -63,6 +65,8 @@ export default function App() {
         return <HRMS />;
       case 'admin':
         return <Admin />;
+      case 'reporting':
+        return <Reporting />;
       case 'settings':
         return <Settings theme={theme} setTheme={setTheme} />;
       default:

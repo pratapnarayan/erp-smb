@@ -2,4 +2,5 @@ proxy:
   routes:
     - id: reports
       path: /api/reports/**
-      uri: lb://reporting-service
+      url: http://localhost:9100
+      stripPrefix: true

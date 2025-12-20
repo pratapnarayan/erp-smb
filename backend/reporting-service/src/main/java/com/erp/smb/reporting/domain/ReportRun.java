@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "report_runs")
+@Table(name = "report_runs", schema = "reporting")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ReportRun {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +26,9 @@ public class ReportRun {
 
     @Column(name = "params_json", columnDefinition = "jsonb")
     private String paramsJson;
+
+    @Column(name = "format")
+    private String format; // CSV|XLSX|PDF
 
     @Column(nullable = false)
     private String status; // queued|running|completed|failed
