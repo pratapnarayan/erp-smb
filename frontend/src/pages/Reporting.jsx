@@ -45,6 +45,29 @@ export default function Reporting() {
     }
   }
 
+  async function downloadLatest(runId) {
+    try {
+      const list = await reportingApi.exportsByRun(runId);
+      if (!list || list.length === 0) {
+        alert('No export available yet for this run.');
+        return;
+      }
+      const exportId = list[0].id;
+      const blob = await reportingApi.download(exportId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report-${runId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to download export');
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', gap: '12px', marginBottom: 16 }}>
@@ -80,9 +103,13 @@ export default function Reporting() {
           { key: 'id', label: 'ID' },
           { key: 'status', label: 'Status' },
           { key: 'requestedAt', label: 'Requested At' },
+          { key: 'actions', label: 'Actions', render: (v, row) => (
+              row.status === 'completed' ? <button onClick={() => downloadLatest(row.id)}>Download CSV</button> : null
+            ) },
         ]}
         rows={runs?.content || []}
       />
+
 
       {loading && <div className="badge">Loading…</div>}
     </div>
