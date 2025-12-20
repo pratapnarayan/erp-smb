@@ -1,6 +1,7 @@
 package com.erp.smb.reporting.domain;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.time.OffsetDateTime;
 
@@ -13,6 +14,7 @@ public class ReportRun {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_definition_id", nullable = false)
+    @JsonIgnore
     private ReportDefinition definition;
 
     @Column(name = "tenant_id", nullable = false)
@@ -24,8 +26,9 @@ public class ReportRun {
     @Column(name = "requested_at", nullable = false)
     private OffsetDateTime requestedAt;
 
-    @Column(name = "params_json", columnDefinition = "jsonb")
-    private String paramsJson;
+    @jakarta.persistence.Column(name = "params_json")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    private com.fasterxml.jackson.databind.JsonNode paramsJson;
 
     @Column(name = "format")
     private String format; // CSV|XLSX|PDF

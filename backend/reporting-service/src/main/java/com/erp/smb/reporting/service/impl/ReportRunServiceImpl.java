@@ -40,12 +40,21 @@ public class ReportRunServiceImpl implements ReportRunService {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown or inactive report: " + definitionCode));
         // simple RBAC by category: require REPORT_EXPORT_<CATEGORY>
         requireExportPermission(def.getCategory());
+        com.fasterxml.jackson.databind.JsonNode paramsNode = null;
+        try {
+            if (paramsJson != null && !paramsJson.isBlank()) {
+                paramsNode = new com.fasterxml.jackson.databind.ObjectMapper().readTree(paramsJson);
+            }
+        } catch (Exception e) {
+            // store raw as object with a single field if invalid JSON
+            paramsNode = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().put("_raw", paramsJson);
+        }
         ReportRun run = ReportRun.builder()
                 .definition(def)
                 .tenantId(tenantId)
                 .requestedBy(requestedBy)
                 .requestedAt(OffsetDateTime.now())
-                .paramsJson(paramsJson)
+                .paramsJson(paramsNode)
                 .format(format)
                 .status("queued")
                 .build();

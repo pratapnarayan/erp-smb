@@ -1,15 +1,15 @@
 package com.erp.smb.reporting.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ReportSqlBuilder {
-    private final ObjectMapper mapper = new ObjectMapper();
 
     public record SqlAndParams(String sql, Object[] params) {}
 
-    public SqlAndParams build(String code, String paramsJson, String tenantId) throws Exception {
-        JsonNode params = paramsJson != null && !paramsJson.isBlank() ? mapper.readTree(paramsJson) : mapper.createObjectNode();
+    public SqlAndParams build(String code, JsonNode params, String tenantId) {
+        if (params == null) {
+            params = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        }
         return switch (code) {
             case "sales_performance_monthly" -> buildSalesMonthly(params, tenantId);
             case "top_products_by_revenue" -> buildTopProducts(params, tenantId);
