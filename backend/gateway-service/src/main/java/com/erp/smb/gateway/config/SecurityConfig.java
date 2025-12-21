@@ -18,6 +18,9 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                // Allow proxied Swagger and OpenAPI docs via gateway
+                .requestMatchers("/api/**/v3/api-docs/**", "/api/**/swagger-ui.html", "/api/**/swagger-ui/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reports/**").permitAll()
                 .anyRequest().authenticated()
             )

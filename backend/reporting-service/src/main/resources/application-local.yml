@@ -22,3 +22,11 @@ server:
 app:
   security:
     permit-all: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    display-operation-id: true
+    try-it-out-enabled: true

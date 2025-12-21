@@ -109,8 +109,20 @@ public class ProxyController {
             ResponseEntity<byte[]> resp = (body != null ? reqSpec.body(body) : reqSpec)
                 .exchange((request, response) -> {
                     byte[] responseBody = response.getBody() != null ? response.getBody().readAllBytes() : new byte[0];
+                    // Filter hop-by-hop headers that should not be forwarded back
+                    org.springframework.http.HttpHeaders src = response.getHeaders();
+                    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                    src.forEach((k, v) -> {
+                        String key = k == null ? "" : k.toLowerCase();
+                        if (key.equals("connection") || key.equals("keep-alive") || key.equals("proxy-authenticate") ||
+                            key.equals("proxy-authorization") || key.equals("te") || key.equals("trailer") ||
+                            key.equals("transfer-encoding") || key.equals("upgrade")) {
+                            return; // skip hop-by-hop headers
+                        }
+                        headers.put(k, v);
+                    });
                     return ResponseEntity.status(response.getStatusCode())
-                            .headers(response.getHeaders())
+                            .headers(headers)
                             .body(responseBody);
                 });
             return resp;
