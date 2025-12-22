@@ -1,0 +1,10 @@
+backend/
+data/
+infrastructure/
+*.md
+docker-compose.yml
+*.log
+node_modules/
+target/
+src_backup/
+
