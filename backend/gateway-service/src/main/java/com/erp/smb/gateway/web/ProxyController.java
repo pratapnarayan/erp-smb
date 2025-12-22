@@ -80,9 +80,17 @@ public class ProxyController {
         // Optionally strip the matched route prefix (e.g., /api/reports) before forwarding so downstream services receive their native path
         String routePrefix = match.path.endsWith("/**") ? match.path.substring(0, match.path.length() - 3) : match.path;
         String forwardedPath;
-        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id);
+        // Services with context-path (like enquiry-service with /enquiry) need only /api stripped, not the full /api/service path
+        // This preserves the context-path prefix that the service expects
+        boolean hasContextPath = "enquiry".equalsIgnoreCase(match.id);
+        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id) || hasContextPath;
         if (shouldStrip) {
-            forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            if (hasContextPath) {
+                // Strip only /api to preserve the service context-path (e.g., /api/enquiry/v3/api-docs -> /enquiry/v3/api-docs)
+                forwardedPath = fullPath.startsWith("/api/") ? fullPath.substring(4) : fullPath;
+            } else {
+                forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            }
             if (forwardedPath.isEmpty()) forwardedPath = "/";
         } else {
             forwardedPath = fullPath; // keep fullPath by default

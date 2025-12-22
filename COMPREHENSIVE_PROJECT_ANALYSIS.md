@@ -1,6 +1,6 @@
 # Comprehensive Project Analysis - ERP SMB UI
 
-**Analysis Date:** December 20, 2025  
+**Analysis Date:** December 22, 2025  
 **Project:** ERP SMB (Small and Medium Business) Platform  
 **Repository:** pratapnarayan/erp-smb
 
@@ -36,6 +36,18 @@ This is a **full-stack Enterprise Resource Planning (ERP) system** designed for 
   - Explicit @RequestParam names added in ReportsController for category and period
   - Root docker-compose now includes reporting-service with persistent export storage at ./data/reports, and Eureka client config via SPRING_APPLICATION_JSON
   - Gateway route added for reports: /api/reports/** -> http://localhost:9100 (stripPrefix: true)
+- **API Documentation (December 22, 2025)** ✅ NEW
+  - **Centralized Swagger/OpenAPI Documentation** implemented via gateway-service
+    - Gateway service configured with `springdoc-openapi-starter-webmvc-ui` for unified API documentation
+    - Swagger UI accessible at `http://localhost:8080/swagger-ui/`
+    - All 9 microservices' APIs aggregated in a single Swagger UI interface:
+      - Auth Service, User Service, Product Service, Order Service
+      - Sales Service, Finance Service, HRMS Service, Enquiry Service, Reporting Service
+    - Each service's OpenAPI spec accessible via `/api/{service}/v3/api-docs`
+    - Gateway `SecurityConfig` updated with explicit service-specific patterns for OpenAPI endpoints
+    - `ProxyController` enhanced to handle services with context-path (e.g., enquiry-service with `/enquiry`)
+      - Strips only `/api` prefix for context-path services to preserve service context-path
+      - Fixes 404 errors when accessing OpenAPI docs through gateway
 - Build/Config
   - Parent backend POM cleaned and modules enumerated correctly
   - All service application.yml files are valid YAML (no escaped newlines)
@@ -208,6 +220,7 @@ Each business service follows this structure:
 | **JWT (jjwt)** | 0.11.5 | Authentication tokens |
 | **MapStruct** | 1.5.5.Final | DTO mapping |
 | **Testcontainers** | 1.20.1 | Integration testing |
+| **Springdoc OpenAPI** | 2.6.0 | API documentation (Swagger UI) |
 
 ### Infrastructure
 | Tool | Version | Purpose |
@@ -323,6 +336,44 @@ export const productsApi = {
 ### API Base URL
 - **Development:** `/api` (proxied by Vite to gateway)
 - **Production:** Configured via `API_BASE_URL` constant
+
+### API Documentation
+
+#### Centralized Swagger UI
+The gateway service provides **unified API documentation** for all microservices:
+
+- **Swagger UI URL:** `http://localhost:8080/swagger-ui/`
+- **OpenAPI Spec Endpoints:** Each service exposes its spec at `/api/{service}/v3/api-docs`
+  - Auth: `/api/auth/v3/api-docs`
+  - Users: `/api/users/v3/api-docs`
+  - Products: `/api/products/v3/api-docs`
+  - Orders: `/api/orders/v3/api-docs`
+  - Sales: `/api/sales/v3/api-docs`
+  - Finance: `/api/finance/v3/api-docs`
+  - HRMS: `/api/hrms/v3/api-docs`
+  - Enquiry: `/api/enquiry/v3/api-docs`
+  - Reporting: `/api/reports/v3/api-docs`
+
+#### Implementation Details
+- **Gateway Configuration:**
+  - Uses `springdoc-openapi-starter-webmvc-ui` dependency
+  - Configured in `application.yml` with service-specific URLs
+  - `OpenAPIConfig` bean provides gateway-level API metadata
+- **Security Configuration:**
+  - Explicit service-specific patterns in `SecurityConfig` for OpenAPI endpoints
+  - Avoids invalid path patterns like `/api/**/v3/api-docs/**` (Spring PathPattern limitation)
+  - All `/api/{service}/v3/api-docs/**` endpoints are publicly accessible
+- **Gateway Routing:**
+  - `ProxyController` handles context-path-aware services (e.g., enquiry-service)
+  - Strips only `/api` prefix for services with context-path to preserve service routing
+  - Ensures OpenAPI specs are correctly proxied to backend services
+
+#### Service-Level Configuration
+Each microservice includes:
+- `springdoc-openapi-starter-webmvc-ui` dependency
+- `OpenAPIConfig` bean with service-specific API metadata
+- Security configuration allowing `/v3/api-docs/**` and `/swagger-ui/**` endpoints
+- Service-specific OpenAPI paths and package scanning configuration
 
 ---
 
@@ -486,7 +537,8 @@ Based on the latest analysis, several previously identified critical and medium-
 2.  ✅ **Frontend Proxy is Configured:** The `frontend/vite.config.ts` file now includes a proxy to the backend gateway (`http://localhost:8080`), enabling local development.
 3.  ✅ **Gateway Build Plugin is Present:** The `gateway-service/pom.xml` correctly includes the `spring-boot-maven-plugin`, allowing it to be packaged as an executable JAR.
 4.  ✅ **Dual Frontend Setup is Resolved:** The project has been consolidated to a single frontend configuration located in the `/frontend` directory, removing ambiguity.
-5.  ✅ **Other Previous Fixes:** Issues noted in `PROJECT_ANALYSIS.md` (e.g., missing axios, POM formatting) also remain resolved.
+5.  ✅ **API Documentation Implemented:** Centralized Swagger/OpenAPI documentation is now available via gateway service at `http://localhost:8080/swagger-ui/`. All 9 microservices' APIs are aggregated and accessible through a unified interface. Security configuration and gateway routing have been optimized to support context-path-aware services.
+6.  ✅ **Other Previous Fixes:** Issues noted in `PROJECT_ANALYSIS.md` (e.g., missing axios, POM formatting) also remain resolved.
 
 ### 🔍 Current Observations
 
@@ -495,10 +547,10 @@ Based on the latest analysis, several previously identified critical and medium-
 - **Impact:** The frontend must be run as a separate process during development. A fully containerized, single-command startup is not possible.
 - **Recommendation:** Add a service (e.g., using nginx) to the `docker-compose.yml` file to build and serve the frontend application.
 
-#### 2. **No API Documentation** 🟡 MEDIUM
-- **Issue:** No OpenAPI/Swagger configuration was detected in the backend services.
-- **Impact:** Developers must read the source code to understand API contracts, which slows down development and increases the risk of integration errors.
-- **Recommendation:** Add `springdoc-openapi` to the backend services to automatically generate API documentation.
+#### 2. **API Documentation** ✅ RESOLVED
+- **Status:** Centralized Swagger/OpenAPI documentation has been implemented via the gateway service.
+- **Implementation:** All microservices expose OpenAPI specs accessible through the gateway at `http://localhost:8080/swagger-ui/`.
+- **Details:** See "API Documentation" section above for complete implementation details.
 
 #### 3. **Incomplete Common Library** 🟢 LOW
 - **Issue:** The `common-lib` shared library is minimal, containing only `JwtUtils` and `PageResponse`.
@@ -560,6 +612,7 @@ docker-compose up --build
 # Access points:
 # - Frontend: http://localhost:5173 (if added to compose)
 # - Gateway: http://localhost:8080
+# - Swagger UI: http://localhost:8080/swagger-ui/
 # - Eureka: http://localhost:8761
 # - PgAdmin: http://localhost:5050
 ```
@@ -607,14 +660,11 @@ npm run preview  # Test production build
 
 ### Priority 1: Development Experience
 1. 📦 **Add frontend Docker build** - Create a fully containerized, single-command startup.
-2. 📚 **Add API documentation** - Add Springdoc OpenAPI to services.
+2. ✅ **API documentation** - COMPLETED: Centralized Swagger/OpenAPI documentation implemented via gateway service.
 3. 🧪 **Document testing strategy** - Explain how to run backend and frontend tests.
 4. 📖 **Update README** - Add a comprehensive setup guide reflecting the current state.
 
-### Priority 2: Production Readiness
-
 ### Priority 2: Development Experience
-4. 📚 **Add API documentation** - Springdoc OpenAPI
 5. 🧪 **Document testing strategy** - How to run tests
 6. 📖 **Update README** - Add comprehensive setup guide
 7. 🔧 **Add development scripts** - `start-backend.sh`, `start-frontend.sh`
@@ -666,7 +716,7 @@ The application covers these ERP modules:
 | Document | Status | Location |
 |----------|--------|----------|
 | README | ⚠️ Exists | `/README.md` (not reviewed) |
-| API Docs | ❌ Missing | - |
+| API Docs | ✅ Implemented | `http://localhost:8080/swagger-ui/` (via gateway) |
 | Architecture Diagram | ✅ Created | This document |
 | Setup Guide | ⚠️ Partial | README likely has some info |
 | Deployment Guide | ❌ Missing | - |
@@ -687,6 +737,9 @@ The application covers these ERP modules:
 - [App Shell](file:///d:/Projects/erp-smb-ui/frontend/src/components/AppShell.jsx) - Main layout
 - [API Client](file:///d:/Projects/erp-smb-ui/frontend/src/api/clients/index.js) - HTTP client
 - [JWT Utils](file:///d:/Projects/erp-smb-ui/backend/common-lib/src/main/java/com/erp/smb/common/security/JwtUtils.java) - Token handling
+- [Gateway ProxyController](file:///d:/Projects/erp-smb-ui/backend/gateway-service/src/main/java/com/erp/smb/gateway/web/ProxyController.java) - API Gateway routing
+- [Gateway SecurityConfig](file:///d:/Projects/erp-smb-ui/backend/gateway-service/src/main/java/com/erp/smb/gateway/config/SecurityConfig.java) - Security configuration
+- [Gateway OpenAPIConfig](file:///d:/Projects/erp-smb-ui/backend/gateway-service/src/main/java/com/erp/smb/gateway/config/OpenAPIConfig.java) - OpenAPI configuration
 
 ### Infrastructure Scripts
 - [BOM Check Script](file:///d:/Projects/erp-smb-ui/infrastructure/scripts/check_bom_and_escapes.ps1) - File encoding validation

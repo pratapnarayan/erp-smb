@@ -19,8 +19,21 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                // Allow proxied Swagger and OpenAPI docs via gateway
-                .requestMatchers("/api/**/v3/api-docs/**", "/api/**/swagger-ui.html", "/api/**/swagger-ui/**").permitAll()
+                // Allow proxied Swagger and OpenAPI docs via gateway.
+                // IMPORTANT: Spring's PathPattern does not allow more pattern data after a `**` segment,
+                // so patterns like `/api/**/v3/api-docs/**` cause PatternParseException.
+                // Instead, list the known service-specific doc endpoints explicitly.
+                .requestMatchers(
+                    "/api/auth/v3/api-docs/**",
+                    "/api/users/v3/api-docs/**",
+                    "/api/products/v3/api-docs/**",
+                    "/api/orders/v3/api-docs/**",
+                    "/api/sales/v3/api-docs/**",
+                    "/api/finance/v3/api-docs/**",
+                    "/api/hrms/v3/api-docs/**",
+                    "/api/enquiry/v3/api-docs/**",
+                    "/api/reports/v3/api-docs/**"
+                ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reports/**").permitAll()
                 .anyRequest().authenticated()
             )
