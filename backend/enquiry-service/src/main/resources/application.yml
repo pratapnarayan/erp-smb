@@ -1,5 +1,7 @@
 server:
   port: 8088
+  servlet:
+    context-path: /enquiry
 spring:
   application:
     name: enquiry-service
@@ -22,3 +24,15 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
     access-ttl: 3600
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  packages-to-scan: com.erp.smb.enquiry
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  paths-to-match: /api/**

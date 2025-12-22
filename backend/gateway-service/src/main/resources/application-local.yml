@@ -21,27 +21,60 @@ proxy:
     - id: auth
       path: /api/auth/**
       url: http://localhost:8081
+      stripPrefix: true
     - id: users
       path: /api/users/**
       url: http://localhost:8082
+      stripPrefix: true
     - id: products
       path: /api/products/**
       url: http://localhost:8083
+      stripPrefix: true
     - id: orders
       path: /api/orders/**
       url: http://localhost:8084
+      stripPrefix: true
     - id: sales
       path: /api/sales/**
       url: http://localhost:8085
+      stripPrefix: true
     - id: finance
       path: /api/finance/**
       url: http://localhost:8086
+      stripPrefix: true
     - id: hrms
       path: /api/hrms/**
       url: http://localhost:8087
+      stripPrefix: true
     - id: enquiry
       path: /api/enquiry/**
       url: http://localhost:8088
+      stripPrefix: true
     - id: reports
       path: /api/reports/**
       url: http://localhost:9100
+      stripPrefix: true
+
+springdoc:
+  swagger-ui:
+    display-operation-id: true
+    try-it-out-enabled: true
+    urls:
+      - name: Auth Service
+        url: /api/auth/v3/api-docs
+      - name: User Service
+        url: /api/users/v3/api-docs
+      - name: Product Service
+        url: /api/products/v3/api-docs
+      - name: Order Service
+        url: /api/orders/v3/api-docs
+      - name: Sales Service
+        url: /api/sales/v3/api-docs
+      - name: Finance Service
+        url: /api/finance/v3/api-docs
+      - name: HRMS Service
+        url: /api/hrms/v3/api-docs
+      - name: Enquiry Service
+        url: /api/enquiry/v3/api-docs
+      - name: Reporting Service
+        url: /api/reports/v3/api-docs

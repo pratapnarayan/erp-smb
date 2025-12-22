@@ -27,3 +27,11 @@ eureka:
 app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    display-operation-id: true
+    try-it-out-enabled: true

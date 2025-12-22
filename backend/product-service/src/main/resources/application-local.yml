@@ -23,3 +23,16 @@ eureka:
     enabled: false
     register-with-eureka: false
     fetch-registry: false
+
+app:
+  jwt:
+    secret: dev-secret-please-change-32-chars-minimum-123456
+    access-ttl: 3600
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    display-operation-id: true
+    try-it-out-enabled: true

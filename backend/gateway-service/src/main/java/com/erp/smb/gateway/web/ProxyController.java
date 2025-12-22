@@ -80,9 +80,17 @@ public class ProxyController {
         // Optionally strip the matched route prefix (e.g., /api/reports) before forwarding so downstream services receive their native path
         String routePrefix = match.path.endsWith("/**") ? match.path.substring(0, match.path.length() - 3) : match.path;
         String forwardedPath;
-        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id);
+        // Services with context-path (like enquiry-service with /enquiry) need only /api stripped, not the full /api/service path
+        // This preserves the context-path prefix that the service expects
+        boolean hasContextPath = "enquiry".equalsIgnoreCase(match.id);
+        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id) || hasContextPath;
         if (shouldStrip) {
-            forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            if (hasContextPath) {
+                // Strip only /api to preserve the service context-path (e.g., /api/enquiry/v3/api-docs -> /enquiry/v3/api-docs)
+                forwardedPath = fullPath.startsWith("/api/") ? fullPath.substring(4) : fullPath;
+            } else {
+                forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            }
             if (forwardedPath.isEmpty()) forwardedPath = "/";
         } else {
             forwardedPath = fullPath; // keep fullPath by default
@@ -109,8 +117,20 @@ public class ProxyController {
             ResponseEntity<byte[]> resp = (body != null ? reqSpec.body(body) : reqSpec)
                 .exchange((request, response) -> {
                     byte[] responseBody = response.getBody() != null ? response.getBody().readAllBytes() : new byte[0];
+                    // Filter hop-by-hop headers that should not be forwarded back
+                    org.springframework.http.HttpHeaders src = response.getHeaders();
+                    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                    src.forEach((k, v) -> {
+                        String key = k == null ? "" : k.toLowerCase();
+                        if (key.equals("connection") || key.equals("keep-alive") || key.equals("proxy-authenticate") ||
+                            key.equals("proxy-authorization") || key.equals("te") || key.equals("trailer") ||
+                            key.equals("transfer-encoding") || key.equals("upgrade")) {
+                            return; // skip hop-by-hop headers
+                        }
+                        headers.put(k, v);
+                    });
                     return ResponseEntity.status(response.getStatusCode())
-                            .headers(response.getHeaders())
+                            .headers(headers)
                             .body(responseBody);
                 });
             return resp;
