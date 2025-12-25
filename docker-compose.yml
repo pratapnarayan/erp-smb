@@ -2,13 +2,19 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: erp
+      POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
     ports:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-erp}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   pgadmin:
     image: dpage/pgadmin4:8
     environment:
@@ -17,12 +23,23 @@ services:
     ports:
       - '5050:80'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+
   config-service:
     build:
       context: ./backend
       dockerfile: config-service/Dockerfile
-    ports: ['8888:8888']
+    ports: [ '8888:8888' ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   discovery-service:
     build:
       context: ./backend
@@ -30,18 +47,43 @@ services:
     environment:
       EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
       EUREKA_CLIENT_FETCH_REGISTRY: "false"
-    ports: ['8761:8761']
-    depends_on: [config-service]
+      # Fast registry fetch for dev
+      EUREKA_SERVER_RESPONSE_CACHE_UPDATE_INTERVAL_MS: 5000
+    ports: [ '8761:8761' ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      config-service:
+        condition: service_healthy
+
   gateway-service:
     build:
       context: ./backend
       dockerfile: gateway-service/Dockerfile
     environment:
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+      SPRING_CLOUD_DISCOVERY_CLIENT_SIMPLE_RETRY_ENABLED: "true"
     ports:
       - '8080:8080'
-    depends_on: [config-service, discovery-service, auth-service, user-service, product-service, order-service, sales-service, finance-service, hrms-service, enquiry-service, reporting-service]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+
   auth-service:
     build:
       context: ./backend
@@ -53,8 +95,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   user-service:
     build:
       context: ./backend
@@ -66,8 +115,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   product-service:
     build:
       context: ./backend
@@ -79,8 +135,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   order-service:
     build:
       context: ./backend
@@ -92,8 +155,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   sales-service:
     build:
       context: ./backend
@@ -105,8 +175,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   finance-service:
     build:
       context: ./backend
@@ -118,8 +195,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   hrms-service:
     build:
       context: ./backend
@@ -131,8 +215,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   enquiry-service:
     build:
       context: ./backend
@@ -144,8 +235,15 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
-    depends_on: [postgres, config-service, discovery-service]
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
   reporting-service:
     build:
       context: ./backend
@@ -158,9 +256,26 @@ services:
       REPORTS_MAX_EXPORT_ROWS: ${REPORTS_MAX_EXPORT_ROWS:-1000000}
       EXPORT_RETENTION_DAYS: ${EXPORT_RETENTION_DAYS:-30}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
-      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"}}}}'
+      SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     volumes:
       - ${REPORTS_STORAGE_HOST_DIR:-./data/reports}:/data/reports
-    depends_on: [postgres, config-service, discovery-service]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:80'
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+
 volumes:
   pgdata: {}

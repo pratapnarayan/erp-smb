@@ -3,8 +3,8 @@ server:
 spring:
   application:
     name: gateway-service
-  config:
-    import: "classpath:routes/auth.yml,classpath:routes/users.yml,classpath:routes/products.yml,classpath:routes/orders.yml,classpath:routes/sales.yml,classpath:routes/finance.yml,classpath:routes/hrms.yml,classpath:routes/enquiry.yml,classpath:routes/reports.yml"
+  # config:
+  #   import: "classpath:routes/auth.yml,classpath:routes/users.yml,classpath:routes/products.yml,classpath:routes/orders.yml,classpath:routes/sales.yml,classpath:routes/finance.yml,classpath:routes/hrms.yml,classpath:routes/enquiry.yml,classpath:routes/reports.yml"
 app:
   jwt:
     secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
@@ -14,39 +14,39 @@ proxy:
   routes:
     - id: auth
       path: /api/auth/**
-      url: http://localhost:8081
-      stripPrefix: true
+      uri: lb://auth-service
+      stripPrefix: false
     - id: users
       path: /api/users/**
-      url: http://localhost:8082
-      stripPrefix: true
+      uri: lb://user-service
+      stripPrefix: false
     - id: products
       path: /api/products/**
-      url: http://localhost:8083
-      stripPrefix: true
+      uri: lb://product-service
+      stripPrefix: false
     - id: orders
       path: /api/orders/**
-      url: http://localhost:8084
-      stripPrefix: true
+      uri: lb://order-service
+      stripPrefix: false
     - id: sales
       path: /api/sales/**
-      url: http://localhost:8085
-      stripPrefix: true
+      uri: lb://sales-service
+      stripPrefix: false
     - id: finance
       path: /api/finance/**
-      url: http://localhost:8086
-      stripPrefix: true
+      uri: lb://finance-service
+      stripPrefix: false
     - id: hrms
       path: /api/hrms/**
-      url: http://localhost:8087
-      stripPrefix: true
+      uri: lb://hrms-service
+      stripPrefix: false
     - id: enquiry
       path: /api/enquiry/**
-      url: http://localhost:8088
-      stripPrefix: true
+      uri: lb://enquiry-service
+      stripPrefix: false
     - id: reports
       path: /api/reports/**
-      url: http://localhost:9100
+      uri: lb://reporting-service
       stripPrefix: true
 
 springdoc:

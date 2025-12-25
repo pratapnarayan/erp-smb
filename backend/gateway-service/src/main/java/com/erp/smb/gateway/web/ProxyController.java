@@ -25,13 +25,14 @@ public class ProxyController {
         this.lb = lb;
         System.out.println("[Gateway] Loaded routes (" + this.routes.size() + ")");
         for (Route r : this.routes) {
-            System.out.println("  - " + r.id + " path=" + r.path + " stripPrefix=" + r.stripPrefix + " -> " + (r.url!=null?r.url:r.uri));
+            System.out.println("  - " + r.id + " path=" + r.path + " stripPrefix=" + r.stripPrefix + " -> "
+                    + (r.url != null ? r.url : r.uri));
         }
     }
 
     @RequestMapping(value = "/**")
     public ResponseEntity<byte[]> proxy(HttpServletRequest req,
-                                        @RequestBody(required = false) byte[] body) {
+            @RequestBody(required = false) byte[] body) {
         String method = req.getMethod();
         String fullPath = req.getRequestURI();
         String authorization = req.getHeader("Authorization");
@@ -42,24 +43,31 @@ public class ProxyController {
         if ((tenant == null || tenant.isBlank()) && authorization != null && authorization.startsWith("Bearer ")) {
             try {
                 var jwt = new com.erp.smb.common.security.JwtUtils(
-                        System.getProperty("app.jwt.secret", System.getenv().getOrDefault("APP_JWT_SECRET", "dev-secret-please-change-32-chars-minimum-123456")),
-                        3600, 3600*24
-                );
+                        System.getProperty("app.jwt.secret",
+                                System.getenv().getOrDefault("APP_JWT_SECRET",
+                                        "dev-secret-please-change-32-chars-minimum-123456")),
+                        3600, 3600 * 24);
                 var claims = jwt.parse(authorization.substring(7)).getBody();
                 Object t = claims.get("tenantId");
-                if (t == null) t = claims.get("tenant_id");
-                if (t == null) t = claims.get("tenant");
-                if (t != null) tenant = String.valueOf(t);
-            } catch (Exception ignored) {}
+                if (t == null)
+                    t = claims.get("tenant_id");
+                if (t == null)
+                    t = claims.get("tenant");
+                if (t != null)
+                    tenant = String.valueOf(t);
+            } catch (Exception ignored) {
+            }
         }
-       // For local development: if no tenant was resolved and the request targets reporting, default to 'demo'
-       try {
-           String p = req.getRequestURI();
-           if ((tenant == null || tenant.isBlank()) && p != null && p.startsWith("/api/reports/")) {
-               tenant = "demo";
-           }
-       } catch (Exception ignored) {}
-       AntPathMatcher matcher = new AntPathMatcher();
+        // For local development: if no tenant was resolved and the request targets
+        // reporting, default to 'demo'
+        try {
+            String p = req.getRequestURI();
+            if ((tenant == null || tenant.isBlank()) && p != null && p.startsWith("/api/reports/")) {
+                tenant = "demo";
+            }
+        } catch (Exception ignored) {
+        }
+        AntPathMatcher matcher = new AntPathMatcher();
         Route match = routes.stream().filter(r -> matcher.match(r.path, fullPath)).findFirst().orElse(null);
         if (match == null) {
             System.out.println("[Gateway] No route matched for path=" + fullPath);
@@ -70,42 +78,43 @@ public class ProxyController {
         if (match.uri != null && match.uri.startsWith("lb://")) {
             String serviceId = match.uri.substring("lb://".length());
             var instance = lb.choose(serviceId);
-            if (instance == null) return ResponseEntity.status(503).build();
+            if (instance == null)
+                return ResponseEntity.status(503).build();
             base = "http://" + instance.getHost() + ":" + instance.getPort();
         } else if (match.url != null) {
             base = match.url;
         } else {
             return ResponseEntity.status(500).build();
         }
-        // Optionally strip the matched route prefix (e.g., /api/reports) before forwarding so downstream services receive their native path
+        // Optionally strip the matched route prefix (e.g., /api/reports) before
+        // forwarding so downstream services receive their native path
         String routePrefix = match.path.endsWith("/**") ? match.path.substring(0, match.path.length() - 3) : match.path;
         String forwardedPath;
-        // Services with context-path (like enquiry-service with /enquiry) need only /api stripped, not the full /api/service path
-        // This preserves the context-path prefix that the service expects
-        boolean hasContextPath = "enquiry".equalsIgnoreCase(match.id);
-        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id) || hasContextPath;
+        // Special handling for reports service which uses /v1/reports controller
+        // mapping
+        boolean shouldStrip = Boolean.TRUE.equals(match.stripPrefix) || "reports".equalsIgnoreCase(match.id);
         if (shouldStrip) {
-            if (hasContextPath) {
-                // Strip only /api to preserve the service context-path (e.g., /api/enquiry/v3/api-docs -> /enquiry/v3/api-docs)
-                forwardedPath = fullPath.startsWith("/api/") ? fullPath.substring(4) : fullPath;
-            } else {
-                forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
-            }
-            if (forwardedPath.isEmpty()) forwardedPath = "/";
+            forwardedPath = fullPath.startsWith(routePrefix) ? fullPath.substring(routePrefix.length()) : fullPath;
+            if (forwardedPath.isEmpty())
+                forwardedPath = "/";
         } else {
             forwardedPath = fullPath; // keep fullPath by default
         }
-        String targetUrl = base + forwardedPath + (query==null?"":"?"+query);
+        String targetUrl = base + forwardedPath + (query == null ? "" : "?" + query);
         System.out.println("[Gateway] " + method + " " + fullPath + " -> " + targetUrl + " (route=" + match.id + ")");
         RestClient client = RestClient.create();
-        // Use exchange(..) to avoid throwing on 4xx/5xx and faithfully pass-through status and headers
+        // Use exchange(..) to avoid throwing on 4xx/5xx and faithfully pass-through
+        // status and headers
         try {
             RestClient.RequestBodySpec reqSpec = client
-                .method(HttpMethod.valueOf(method))
-                .uri(URI.create(targetUrl));
-            if (authorization != null && !authorization.isBlank()) reqSpec = reqSpec.header("Authorization", authorization);
-            if (accept != null && !accept.isBlank()) reqSpec = reqSpec.header("Accept", accept);
-            if (tenant != null && !tenant.isBlank()) reqSpec = reqSpec.header("X-Tenant-Id", tenant);
+                    .method(HttpMethod.valueOf(method))
+                    .uri(URI.create(targetUrl));
+            if (authorization != null && !authorization.isBlank())
+                reqSpec = reqSpec.header("Authorization", authorization);
+            if (accept != null && !accept.isBlank())
+                reqSpec = reqSpec.header("Accept", accept);
+            if (tenant != null && !tenant.isBlank())
+                reqSpec = reqSpec.header("X-Tenant-Id", tenant);
             // Only set Content-Type if provided by the client or if we have a body
             boolean hasBody = body != null && body.length > 0;
             if (contentType != null && !contentType.isBlank()) {
@@ -115,34 +124,51 @@ public class ProxyController {
             }
             // Only attach a body if present; avoid NPE for GET/HEAD without body
             ResponseEntity<byte[]> resp = (body != null ? reqSpec.body(body) : reqSpec)
-                .exchange((request, response) -> {
-                    byte[] responseBody = response.getBody() != null ? response.getBody().readAllBytes() : new byte[0];
-                    // Filter hop-by-hop headers that should not be forwarded back
-                    org.springframework.http.HttpHeaders src = response.getHeaders();
-                    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-                    src.forEach((k, v) -> {
-                        String key = k == null ? "" : k.toLowerCase();
-                        if (key.equals("connection") || key.equals("keep-alive") || key.equals("proxy-authenticate") ||
-                            key.equals("proxy-authorization") || key.equals("te") || key.equals("trailer") ||
-                            key.equals("transfer-encoding") || key.equals("upgrade")) {
-                            return; // skip hop-by-hop headers
-                        }
-                        headers.put(k, v);
+                    .exchange((request, response) -> {
+                        byte[] responseBody = response.getBody() != null ? response.getBody().readAllBytes()
+                                : new byte[0];
+                        // Filter hop-by-hop headers that should not be forwarded back
+                        org.springframework.http.HttpHeaders src = response.getHeaders();
+                        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                        src.forEach((k, v) -> {
+                            String key = k == null ? "" : k.toLowerCase();
+                            if (key.equals("connection") || key.equals("keep-alive") || key.equals("proxy-authenticate")
+                                    ||
+                                    key.equals("proxy-authorization") || key.equals("te") || key.equals("trailer") ||
+                                    key.equals("transfer-encoding") || key.equals("upgrade")) {
+                                return; // skip hop-by-hop headers
+                            }
+                            headers.put(k, v);
+                        });
+                        return ResponseEntity.status(response.getStatusCode())
+                                .headers(headers)
+                                .body(responseBody);
                     });
-                    return ResponseEntity.status(response.getStatusCode())
-                            .headers(headers)
-                            .body(responseBody);
-                });
             return resp;
         } catch (Exception ex) {
-            System.out.println("[Gateway] Error proxying to " + targetUrl + ": " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+            System.out.println("[Gateway] Error proxying to " + targetUrl + ": " + ex.getClass().getSimpleName() + " - "
+                    + ex.getMessage());
             return ResponseEntity.status(502).build();
         }
     }
 
     static class Route {
-        final String id; final String path; final String url; final String uri; final Boolean stripPrefix;
-        Route(String id, String path, String url, String uri, Boolean stripPrefix){ this.id=id; this.path=path; this.url=url; this.uri=uri; this.stripPrefix=stripPrefix; }
-        static Route from(ProxyProperties.Route r){return new Route(r.getId(), r.getPath(), r.getUrl(), r.getUri(), r.getStripPrefix());}
+        final String id;
+        final String path;
+        final String url;
+        final String uri;
+        final Boolean stripPrefix;
+
+        Route(String id, String path, String url, String uri, Boolean stripPrefix) {
+            this.id = id;
+            this.path = path;
+            this.url = url;
+            this.uri = uri;
+            this.stripPrefix = stripPrefix;
+        }
+
+        static Route from(ProxyProperties.Route r) {
+            return new Route(r.getId(), r.getPath(), r.getUrl(), r.getUri(), r.getStripPrefix());
+        }
     }
 }
