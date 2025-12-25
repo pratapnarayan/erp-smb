@@ -7,23 +7,29 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
- import java.util.Map;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/enquiry")
 public class EnquiryController {
   private final EnquiryRepository repo;
-  public EnquiryController(EnquiryRepository repo){this.repo=repo;}
+
+  public EnquiryController(EnquiryRepository repo) {
+    this.repo = repo;
+  }
 
   @GetMapping
   public ResponseEntity<PageResponse<Enquiry>> list(@RequestParam(name = "page", defaultValue = "0") int page,
-                                                    @RequestParam(name = "size", defaultValue = "20") int size){
+      @RequestParam(name = "size", defaultValue = "20") int size) {
     var p = repo.findAll(PageRequest.of(page, size));
-    return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
+    return ResponseEntity
+        .ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
   }
 
   @PostMapping
-  public Enquiry create(@RequestBody Enquiry e){ return repo.save(e);} 
+  public Enquiry create(@RequestBody Enquiry e) {
+    return repo.save(e);
+  }
 
   @PutMapping("/{id}/status")
   public ResponseEntity<?> updateStatus(@PathVariable(name = "id") long id, @RequestBody Map<String, String> body) {
@@ -53,7 +59,8 @@ public class EnquiryController {
   }
 
   private boolean isClosed(String status) {
-    if (status == null) return false;
+    if (status == null)
+      return false;
     String s = status.trim().toUpperCase();
     return s.equals("CLOSED") || s.equals("RESOLVED");
   }
