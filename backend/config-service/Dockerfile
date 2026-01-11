@@ -1,7 +1,7 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /workspace
 COPY . .
-RUN mvn -pl config-service -am -DskipTests clean package
+RUN mvn -s .mvn/settings.xml -pl config-service -am -DskipTests clean package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

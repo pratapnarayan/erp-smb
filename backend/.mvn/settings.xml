@@ -1,0 +1,26 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <!-- Use repo1 (fastly CDN) to avoid flaky TLS with repo.maven.apache.org -->
+    <mirror>
+      <id>central-repo1</id>
+      <name>Maven Central via repo1</name>
+      <url>https://repo1.maven.org/maven2</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+  <profiles>
+    <profile>
+      <id>default-profile</id>
+      <properties>
+        <!-- Extra resiliency for HTTP wagon -->
+        <maven.wagon.http.retryHandler.count>5</maven.wagon.http.retryHandler.count>
+        <maven.wagon.http.pool>false</maven.wagon.http.pool>
+      </properties>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>default-profile</activeProfile>
+  </activeProfiles>
+</settings>
