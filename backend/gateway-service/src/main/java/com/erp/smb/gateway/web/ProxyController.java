@@ -32,13 +32,23 @@ public class ProxyController {
 
     @RequestMapping(value = "/**")
     public ResponseEntity<byte[]> proxy(HttpServletRequest req,
-            @RequestBody(required = false) byte[] body) {
+            @RequestBody(required = false) byte[] body) throws java.io.IOException {
         String method = req.getMethod();
         String fullPath = req.getRequestURI();
         String authorization = req.getHeader("Authorization");
         String contentType = req.getHeader("Content-Type");
         String accept = req.getHeader("Accept");
         String tenant = req.getHeader("X-Tenant-Id");
+
+        // For multipart requests, read the raw input stream instead of using
+        // @RequestBody
+        boolean isMultipart = contentType != null && contentType.toLowerCase().startsWith("multipart/");
+        byte[] requestBody = body;
+        if (isMultipart && (body == null || body.length == 0)) {
+            // Read raw input stream for multipart data
+            requestBody = req.getInputStream().readAllBytes();
+        }
+
         // Derive tenantId from JWT if header is missing
         if ((tenant == null || tenant.isBlank()) && authorization != null && authorization.startsWith("Bearer ")) {
             try {
@@ -116,14 +126,14 @@ public class ProxyController {
             if (tenant != null && !tenant.isBlank())
                 reqSpec = reqSpec.header("X-Tenant-Id", tenant);
             // Only set Content-Type if provided by the client or if we have a body
-            boolean hasBody = body != null && body.length > 0;
+            boolean hasBody = requestBody != null && requestBody.length > 0;
             if (contentType != null && !contentType.isBlank()) {
                 reqSpec = reqSpec.header("Content-Type", contentType);
             } else if (hasBody) {
                 reqSpec = reqSpec.header("Content-Type", "application/json");
             }
             // Only attach a body if present; avoid NPE for GET/HEAD without body
-            ResponseEntity<byte[]> resp = (body != null ? reqSpec.body(body) : reqSpec)
+            ResponseEntity<byte[]> resp = (requestBody != null ? reqSpec.body(requestBody) : reqSpec)
                     .exchange((request, response) -> {
                         byte[] responseBody = response.getBody() != null ? response.getBody().readAllBytes()
                                 : new byte[0];

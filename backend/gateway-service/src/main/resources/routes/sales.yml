@@ -3,3 +3,6 @@ proxy:
     - id: sales
       path: /api/sales/**
       uri: lb://sales-service
+    - id: customers
+      path: /api/customers/**
+      uri: lb://sales-service
