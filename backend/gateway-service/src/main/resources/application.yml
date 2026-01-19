@@ -32,6 +32,10 @@ proxy:
       path: /api/sales/**
       uri: lb://sales-service
       stripPrefix: false
+    - id: customers
+      path: /api/customers/**
+      uri: lb://sales-service
+      stripPrefix: false
     - id: finance
       path: /api/finance/**
       uri: lb://finance-service
@@ -47,7 +51,7 @@ proxy:
     - id: reports
       path: /api/reports/**
       uri: lb://reporting-service
-      stripPrefix: true
+      stripPrefix: false
 
 springdoc:
   swagger-ui:

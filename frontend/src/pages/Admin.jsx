@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
+import DataImport from '../components/DataImport.jsx';
 
 const userColumns = [
   { key: 'email', label: 'Email' },
@@ -18,6 +19,7 @@ const initialUsers = [
 export default function Admin({ currentRole }) {
   const [users, setUsers] = useState(initialUsers);
   const [form, setForm] = useState({ email: '', role: 'Viewer', active: true });
+  const [activeSection, setActiveSection] = useState('users');
 
   const addUser = (e) => {
     e.preventDefault();
@@ -26,9 +28,33 @@ export default function Admin({ currentRole }) {
     setForm({ email: '', role: 'Viewer', active: true });
   };
 
-  const canInvite = currentRole === 'ADMIN' || currentRole === 'HR';
+  const canInvite = currentRole === 'ROLE_ADMIN' || currentRole === 'ROLE_HR';
+  const canImport = currentRole === 'ROLE_ADMIN' || currentRole === 'ROLE_OWNER';
+
   return (
-    <div className="grid cols-1">
+    <div>
+      {/* Section Tabs */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem' }}>
+        <button
+          onClick={() => setActiveSection('users')}
+          className={activeSection === 'users' ? 'btn btn-primary' : 'btn btn-secondary'}
+        >
+          👥 User Management
+        </button>
+        {canImport && (
+          <button
+            onClick={() => setActiveSection('import')}
+            className={activeSection === 'import' ? 'btn btn-primary' : 'btn btn-secondary'}
+          >
+            📊 Data Import
+          </button>
+        )}
+      </div>
+
+      {activeSection === 'import' && canImport ? (
+        <DataImport />
+      ) : (
+        <div className="grid cols-1">
       {canInvite ? (
       <FrostedCard title="Invite User" subtitle="Access management">
         <form className="form" onSubmit={addUser}>
@@ -69,6 +95,8 @@ export default function Admin({ currentRole }) {
       <FrostedCard title="Users" subtitle="Organization members">
         <DataTable columns={userColumns} rows={users} />
       </FrostedCard>
+        </div>
+      )}
     </div>
   );
 }
