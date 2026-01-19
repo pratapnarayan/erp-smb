@@ -1,29 +1,361 @@
-# Comprehensive Project Analysis - ERP SMB UI
+# ERP SMB Platform - Comprehensive Documentation
 
-**Analysis Date:** December 25, 2024  
-**Project:** ERP SMB (Small and Medium Business) Platform  
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [System Architecture](#system-architecture)
+3. [Technical Stack](#technical-stack)
+4. [Service Documentation](#service-documentation)
+5. [Deployment Guide](#deployment-guide)
+6. [Configuration Guide](#configuration-guide)
+7. [Data Import Feature](#data-import-feature)
+8. [Troubleshooting](#troubleshooting)
+9. [Development Setup](#development-setup)
+
+## Project Overview
+**Project Name:** ERP SMB (Small and Medium Business) Platform  
 **Repository:** pratapnarayan/erp-smb  
-**Status:** ✅ Production Ready (Docker Deployment)
+**Status:** ✅ Production Ready (Docker Deployment)  
 
----
+A modern, cloud-native microservices-based ERP system designed for small and medium businesses.
 
-## 📋 Executive Summary
+### Key Features
+- Multi-tenant architecture
+- Role-based access control
+- Data import/export functionality
+- Comprehensive reporting
+- Inventory management
+- Sales and order processing
+- HR and finance management
 
-The ERP SMB platform is a **modern, cloud-native microservices-based ERP system** designed for small and medium businesses. The system features:
+## System Architecture
 
-- **Frontend:** React 18 + Vite with TailwindCSS
-- **Backend:** Spring Boot 3.3.4 + Java 21
-- **Database:** PostgreSQL 16 with schema-per-service isolation
+### High-Level Architecture
+```mermaid
+graph TB
+    UI[React Frontend] -->|API Calls| GW[API Gateway]
+    GW -->|Service Discovery| DISC[Eureka Server]
+    GW --> AUTH[Auth Service]
+    GW --> USER[User Service]
+    GW --> PROD[Product Service]
+    GW --> ORD[Order Service]
+    GW --> SALES[Sales Service]
+    GW --> FIN[Finance Service]
+    GW --> HRMS[HRMS Service]
+    GW --> ENQ[Enquiry Service]
+    GW --> REP[Reporting Service]
+    
+    subgraph Database Layer
+        AUTH_DB[(Auth DB)]
+        USER_DB[(User DB)]
+        PROD_DB[(Product DB)]
+        ORD_DB[(Order DB)]
+        SALES_DB[(Sales DB)]
+        FIN_DB[(Finance DB)]
+        HRMS_DB[(HRMS DB)]
+        ENQ_DB[(Enquiry DB)]
+        REP_DB[(Reporting DB)]
+    end
+    
+    AUTH --> AUTH_DB
+    USER --> USER_DB
+    PROD --> PROD_DB
+    ORD --> ORD_DB
+    SALES --> SALES_DB
+    FIN --> FIN_DB
+    HRMS --> HRMS_DB
+    ENQ --> ENQ_DB
+    REP --> REP_DB
+```
+
+## Technical Stack
+
+### Frontend
+- **Framework:** React 18
+- **Build Tool:** Vite
+- **UI Components:** Custom components with TailwindCSS
+- **State Management:** React Context API
+- **HTTP Client:** Axios
+
+### Backend
+- **Framework:** Spring Boot 3.3.4
+- **Language:** Java 21
 - **Service Discovery:** Netflix Eureka
-- **Deployment:** Docker Compose ready with multi-stage builds
+- **API Gateway:** Spring Cloud Gateway
+- **Database:** PostgreSQL 16
+- **Build Tool:** Maven
 
-### Recent Updates (December 2024)
+### DevOps
+- **Containerization:** Docker
+- **Orchestration:** Docker Compose, Kubernetes
+- **CI/CD:** GitHub Actions
+- **Hosting:** Vercel (Frontend), Cloud Provider (Backend)
 
-✅ **Fixed Login 403 Error** - Corrected Nginx proxy configuration and Gateway path handling  
-✅ **Fixed Enquiry 403 Error** - Removed servlet context-path and hardcoded ProxyController logic  
-✅ **Fixed Reporting 503 Error** - Added missing Eureka client dependency  
-✅ **Standardized Path Routing** - All services now use consistent path handling  
-✅ **Updated Documentation** - Comprehensive README and troubleshooting guides
+## Service Documentation
+
+### 1. Authentication Service
+- **Port:** 8081
+- **Database:** `auth_db`
+- **Endpoints:**
+  - `POST /api/auth/login` - User authentication
+  - `POST /api/auth/refresh` - Refresh JWT token
+  - `POST /api/auth/validate` - Validate JWT token
+
+### 2. User Service
+- **Port:** 8082
+- **Database:** `user_db`
+- **Endpoints:**
+  - `GET /api/users` - List users
+  - `POST /api/users` - Create user
+  - `GET /api/users/{id}` - Get user by ID
+
+### 3. Product Service
+- **Port:** 8083
+- **Database:** `product_db`
+- **Endpoints:**
+  - `GET /api/products` - List products
+  - `POST /api/products` - Create product
+  - `POST /api/products/import` - Import products from CSV/Excel
+
+### 4. Order Service
+- **Port:** 8084
+- **Database:** `order_db`
+- **Endpoints:**
+  - `GET /api/orders` - List orders
+  - `POST /api/orders` - Create order
+  - `GET /api/orders/{id}` - Get order details
+
+### 5. Sales Service
+- **Port:** 8085
+- **Database:** `sales_db`
+- **Endpoints:**
+  - `GET /api/sales` - List sales
+  - `POST /api/sales` - Create sale
+  - `GET /api/sales/reports` - Generate sales reports
+
+### 6. Finance Service
+- **Port:** 8086
+- **Database:** `finance_db`
+- **Endpoints:**
+  - `GET /api/finance/transactions` - List transactions
+  - `POST /api/finance/transactions` - Create transaction
+  - `GET /api/finance/reports` - Financial reports
+
+### 7. HRMS Service
+- **Port:** 8087
+- **Database:** `hrms_db`
+- **Endpoints:**
+  - `GET /api/hrms/employees` - List employees
+  - `POST /api/hrms/employees` - Add employee
+  - `GET /api/hrms/attendance` - Attendance records
+
+### 8. Enquiry Service
+- **Port:** 8088
+- **Database:** `enquiry_db`
+- **Endpoints:**
+  - `GET /api/enquiry` - List enquiries
+  - `POST /api/enquiry` - Create enquiry
+  - `GET /api/enquiry/stats` - Enquiry statistics
+
+### 9. Reporting Service
+- **Port:** 9100
+- **Database:** `reporting_db`
+- **Endpoints:**
+  - `GET /api/reports/sales` - Sales reports
+  - `GET /api/reports/inventory` - Inventory reports
+  - `GET /api/reports/finance` - Financial reports
+
+## Deployment Guide
+
+### Prerequisites
+- Docker and Docker Compose
+- Node.js 18+ and npm
+- Java 21 JDK
+- Maven 3.9+
+
+### Local Development Setup
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/pratapnarayan/erp-smb.git
+   cd erp-smb
+   ```
+
+2. **Start the backend services:**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Start the frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+4. Access the application at `http://localhost:3000`
+
+### Production Deployment
+
+#### Frontend (Vercel)
+1. **Connect Repository**
+   - Go to [Vercel](https://vercel.com/new)
+   - Import your GitHub repository (`pratapnarayan/erp-smb`)
+   - Configure project settings:
+     - **Root Directory:** `frontend`
+     - **Framework Preset:** Vite
+     - **Build Command:** `npm run build`
+     - **Output Directory:** `dist`
+     - **Install Command:** `npm install`
+
+2. **Environment Variables**
+   - Add `VITE_API_BASE_URL` with your backend gateway URL
+
+3. **Deploy**
+   - Click "Deploy"
+   - Wait for the build to complete
+
+#### Backend (Docker)
+1. **Build the Docker images:**
+   ```bash
+   docker-compose -f docker-compose.prod.yml build
+   ```
+
+2. **Start the services:**
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+## Configuration Guide
+
+### Environment Variables
+- `SPRING_PROFILES_ACTIVE`: Active Spring profile (dev, prod)
+- `EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE`: Eureka server URL
+- `SPRING_DATASOURCE_URL`: Database connection URL
+- `JWT_SECRET`: JWT secret key
+
+### Gateway Configuration
+The gateway supports two profiles:
+
+1. **Docker/Production (`application.yml`)**
+   ```yaml
+   proxy:
+     routes:
+       - id: auth
+         path: /api/auth/**
+         uri: lb://auth-service
+         stripPrefix: false
+   ```
+
+2. **Local Development (`application-local.yml`)**
+   ```yaml
+   proxy:
+     routes:
+       - id: auth
+         path: /api/auth/**
+         url: http://localhost:8081
+         stripPrefix: false
+   ```
+
+## Data Import Feature
+
+### Overview
+Enables SMB admins to bulk import existing business data (Customers, Products, Opening Stock) from Excel/CSV files.
+
+### Supported Imports
+1. **Customers**
+   - **Endpoint:** `POST /api/customers/import`
+   - **Required Fields:** customer_name, phone
+   - **Template:** `GET /api/customers/import/template`
+
+2. **Products**
+   - **Endpoint:** `POST /api/products/import`
+   - **Required Fields:** product_name, sku
+   - **Template:** `GET /products/import/template`
+
+3. **Opening Stock**
+   - **Endpoint:** `POST /api/products/import/opening-stock`
+   - **Required Fields:** product_name, quantity, warehouse
+   - **Template:** `GET /api/products/import/opening-stock/template`
+
+### Security
+- **Roles:** `ROLE_ADMIN`, `ROLE_OWNER`
+- **File Limits:** 5MB max, 5000 rows max
+- **Validations:**
+  - Required fields
+  - Data types
+  - Business rules
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Gateway 404 Errors**
+   - **Cause:** Service not registered with Eureka
+   - **Solution:** Check Eureka dashboard at `http://localhost:8761`
+
+2. **CORS Errors**
+   - **Cause:** Frontend making requests to different origins
+   - **Solution:** Configure CORS in the gateway service
+
+3. **Database Connection Issues**
+   - **Cause:** Incorrect database credentials
+   - **Solution:** Verify `application-{profile}.yml` files
+
+4. **JWT Authentication Failures**
+   - **Cause:** Invalid or expired token
+   - **Solution:** Check token expiration and secret key
+
+### Logs
+View logs for a specific service:
+```bash
+docker-compose logs -f <service_name>
+```
+
+## Development Setup
+
+### Prerequisites
+- Java 21 JDK
+- Maven 3.9+
+- Node.js 18+
+- Docker and Docker Compose
+- PostgreSQL 16
+
+### Backend Development
+1. **Start required services:**
+   ```bash
+   docker-compose up -d postgres redis
+   cd backend
+   ./mvnw spring-boot:run -pl discovery-service
+   # In separate terminals, run other services
+   ```
+
+### Frontend Development
+1. **Install dependencies:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Start development server:**
+   ```bash
+   npm run dev
+   ```
+
+### Testing
+Run unit tests:
+```bash
+mvn test
+```
+
+Run integration tests:
+```bash
+mvn verify -Pintegration
+```
+
+## License
+[Your License Information Here]
+
+## Support
+For support, please contact [Your Support Email] or open an issue on GitHub.
 
 ---
 
