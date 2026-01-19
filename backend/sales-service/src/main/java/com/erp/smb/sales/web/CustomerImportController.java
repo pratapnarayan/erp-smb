@@ -32,7 +32,7 @@ public class CustomerImportController {
   @Operation(summary = "Import customers from CSV/Excel", description = "Bulk import customer data. Only ADMIN and OWNER roles allowed.")
   public ResponseEntity<ImportResponse> importCustomers(@RequestParam("file") MultipartFile file) {
     try {
-      ImportResponse response = importService.importCustomers(file);
+      ImportResponse response = importService.importFromFile(file);
       return ResponseEntity.ok(response);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));

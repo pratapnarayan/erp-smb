@@ -36,7 +36,7 @@ public class ProductImportController {
   @Operation(summary = "Import products from CSV/Excel", description = "Bulk import product data. Only ADMIN and OWNER roles allowed.")
   public ResponseEntity<ImportResponse> importProducts(@RequestParam("file") MultipartFile file) {
     try {
-      ImportResponse response = productImportService.importProducts(file);
+      ImportResponse response = productImportService.importFromFile(file);
       return ResponseEntity.ok(response);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
@@ -51,7 +51,7 @@ public class ProductImportController {
   @Operation(summary = "Import opening stock from CSV/Excel", description = "Bulk import opening stock data. Only ADMIN and OWNER roles allowed.")
   public ResponseEntity<ImportResponse> importOpeningStock(@RequestParam("file") MultipartFile file) {
     try {
-      ImportResponse response = openingStockImportService.importOpeningStock(file);
+      ImportResponse response = openingStockImportService.importFromFile(file);
       return ResponseEntity.ok(response);
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));

@@ -31,3 +31,8 @@ springdoc:
     enabled: true
     display-operation-id: true
     try-it-out-enabled: true
+
+app:
+  jwt:
+    secret: dev-secret-please-change-32-chars-minimum-123456
+    access-ttl: 3600

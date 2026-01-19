@@ -52,7 +52,7 @@ proxy:
       stripPrefix: false
     - id: enquiry
       path: /api/enquiry/**
-      url: http://localhost:8088
+      url: http://localhost:8089
       stripPrefix: false
     - id: reports
       path: /api/reports/**

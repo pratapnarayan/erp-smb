@@ -1,6 +1,5 @@
 server:
-  servlet:
-    context-path: /enquiry
+  port: 8089
 
 spring:
   datasource:
@@ -42,3 +41,8 @@ springdoc:
   default-produces-media-type: application/json
   default-consumes-media-type: application/json
   paths-to-match: /api/**
+
+app:
+  jwt:
+    secret: dev-secret-please-change-32-chars-minimum-123456
+    access-ttl: 3600
