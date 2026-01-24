@@ -46,6 +46,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**")
                         .permitAll()
+                        // CRITICAL: Explicitly deny indexing endpoints from external access
+                        .requestMatchers("/api/search/index/**", "/api/search/reindex/**").denyAll()
+                        // Search endpoints - authenticated users only (USER, MANAGER, OWNER, ADMIN)
+                        .requestMatchers("/api/search/**").authenticated()
                         // Allow proxied Swagger and OpenAPI docs via gateway.
                         // IMPORTANT: Spring's PathPattern does not allow more pattern data after a `**`
                         // segment,
@@ -60,7 +64,8 @@ public class SecurityConfig {
                                 "/api/finance/v3/api-docs/**",
                                 "/api/hrms/v3/api-docs/**",
                                 "/api/enquiry/v3/api-docs/**",
-                                "/api/reports/v3/api-docs/**")
+                                "/api/reports/v3/api-docs/**",
+                                "/api/search/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reports/**").permitAll()
                         .anyRequest().authenticated())

@@ -36,3 +36,6 @@ app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
     access-ttl: 3600
+  search:
+    service-url: http://localhost:8090
+    system-token: SYSTEM_INTERNAL_TOKEN

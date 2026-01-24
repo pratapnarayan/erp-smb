@@ -1,41 +1,40 @@
+server:
+  port: 8090
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/erp
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+  
   jpa:
-    hibernate:
-      ddl-auto: none
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  cloud:
-    discovery:
-      enabled: false
-    service-registry:
-      auto-registration:
-        enabled: false
+    show-sql: true
+  
+  flyway:
+    enabled: true
+    clean-disabled: false
 
 eureka:
   client:
     enabled: false
-    register-with-eureka: false
-    fetch-registry: false
 
 app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
     access-ttl: 3600
-  search:
-    service-url: http://localhost:8090
-    system-token: SYSTEM_INTERNAL_TOKEN
 
 springdoc:
   api-docs:
+    path: /v3/api-docs
     enabled: true
   swagger-ui:
     enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
     display-operation-id: true
     try-it-out-enabled: true
+  packages-to-scan: com.erp.smb.search
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  paths-to-match: /api/**

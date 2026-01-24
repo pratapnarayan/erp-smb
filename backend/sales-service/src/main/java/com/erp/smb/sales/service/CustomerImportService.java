@@ -18,10 +18,13 @@ public class CustomerImportService extends AbstractImportService<Customer> {
   private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s()]+$");
 
   private final CustomerRepository customerRepository;
+  private final CustomerService customerService;
 
-  public CustomerImportService(List<FileParser> fileParsers, CustomerRepository customerRepository) {
+  public CustomerImportService(List<FileParser> fileParsers, CustomerRepository customerRepository, 
+                               CustomerService customerService) {
     super(fileParsers);
     this.customerRepository = customerRepository;
+    this.customerService = customerService;
   }
 
   @Override
@@ -93,6 +96,8 @@ public class CustomerImportService extends AbstractImportService<Customer> {
 
   @Override
   protected void saveEntity(Customer customer) {
+    // Note: Import doesn't have tenantId context yet, so direct save
+    // In production, extract tenantId from import context
     customerRepository.save(customer);
   }
 
