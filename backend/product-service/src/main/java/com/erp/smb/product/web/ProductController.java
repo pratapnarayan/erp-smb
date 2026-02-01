@@ -3,6 +3,7 @@ package com.erp.smb.product.web;
 import com.erp.smb.common.dto.PageResponse;
 import com.erp.smb.product.domain.Item;
 import com.erp.smb.product.repo.ItemRepository;
+import com.erp.smb.product.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/products")
 public class ProductController {
     private final ItemRepository repo;
+    private final ProductService productService;
 
-    public ProductController(ItemRepository repo) {
+    public ProductController(ItemRepository repo, ProductService productService) {
         this.repo = repo;
+        this.productService = productService;
     }
 
     @GetMapping
@@ -26,12 +29,14 @@ public class ProductController {
     }
 
     @PostMapping
-    public Item create(@RequestBody @Valid Item item) {
-        return repo.save(item);
+    public Item create(@RequestBody @Valid Item item, @RequestHeader("X-Tenant-Id") String tenantId) {
+        return productService.createProduct(item, tenantId);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable(name = "id") long id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> update(@PathVariable(name = "id") long id, 
+                                    @RequestBody Map<String, Object> body,
+                                    @RequestHeader("X-Tenant-Id") String tenantId) {
         var item = repo.findById(id).orElse(null);
         if (item == null) return ResponseEntity.notFound().build();
 
@@ -48,17 +53,18 @@ public class ProductController {
             }
         }
 
-        return ResponseEntity.ok(repo.save(item));
+        return ResponseEntity.ok(productService.updateProduct(item, tenantId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable(name = "id") long id) {
+    public ResponseEntity<?> delete(@PathVariable(name = "id") long id,
+                                    @RequestHeader("X-Tenant-Id") String tenantId) {
         var item = repo.findById(id).orElse(null);
         if (item == null) return ResponseEntity.notFound().build();
         if (!isInactive(item.getStatus()) || item.getStock() != 0) {
             return ResponseEntity.status(409).body(Map.of("error", "only_inactive_products_with_zero_stock_can_be_deleted"));
         }
-        repo.delete(item);
+        productService.deleteProduct(id, tenantId);
         return ResponseEntity.noContent().build();
     }
 

@@ -1,0 +1,46 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/erp
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+  
+  jpa:
+    show-sql: true
+  
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  jwt:
+    secret: dev-secret-please-change-32-chars-minimum-123456
+    access-ttl: 3600
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    display-operation-id: true
+    try-it-out-enabled: true
+  packages-to-scan: com.erp.smb.search
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  paths-to-match: /api/**

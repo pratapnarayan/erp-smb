@@ -15,6 +15,8 @@ eureka:
 app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:3000
 
 proxy:
   routes:
@@ -57,6 +59,14 @@ proxy:
     - id: reports
       path: /api/reports/**
       url: http://localhost:9100
+      stripPrefix: false
+    - id: search-suggestions
+      path: /api/search/suggestions/**
+      url: http://localhost:8090
+      stripPrefix: false
+    - id: search
+      path: /api/search/**
+      url: http://localhost:8090
       stripPrefix: false
 
 springdoc:

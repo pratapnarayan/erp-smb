@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: search-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/erp
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: search
+  
+  flyway:
+    enabled: true
+    schemas: search
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: 8090
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    enabled: true
+  instance:
+    preferIpAddress: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+app:
+  jwt:
+    secret: dev-secret-please-change-32-chars-minimum-123456
+    access-ttl: 3600
+  search:
+    max-results: 100
+    default-limit: 20
+    suggestion-limit: 10
+    min-query-length: 2

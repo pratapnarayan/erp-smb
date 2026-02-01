@@ -11,6 +11,7 @@ import HRMS from './pages/HRMS.jsx';
 import Admin from './pages/Admin.jsx';
 import Login from './pages/Login.jsx';
 import Reporting from './pages/Reporting.jsx';
+import SearchPage from './pages/SearchPage.jsx';
 
 const routes = [
   { key: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -27,6 +28,7 @@ const routes = [
 
 export default function App() {
   const [route, setRoute] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [user, setUser] = useState(() => {
     try {
@@ -69,10 +71,12 @@ export default function App() {
         return <Reporting />;
       case 'settings':
         return <Settings theme={theme} setTheme={setTheme} />;
+      case 'search':
+        return <SearchPage query={searchQuery} onNavigate={setRoute} />;
       default:
         return <Dashboard />;
     }
-  }, [route, theme]);
+  }, [route, theme, searchQuery]);
 
   if (!user) {
     return (
@@ -94,7 +98,23 @@ export default function App() {
         localStorage.setItem('theme', t);
       }}
       route={route}
-      onNavigate={setRoute}
+      onNavigate={(keyOrObj) => {
+        // Support both simple route changes and search navigation payloads
+        if (typeof keyOrObj === 'string') {
+          setRoute(keyOrObj);
+          return;
+        }
+        if (keyOrObj && typeof keyOrObj === 'object') {
+          if (keyOrObj.type === 'search') {
+            setSearchQuery(keyOrObj.query || '');
+            setRoute('search');
+            return;
+          }
+          if (keyOrObj.route) {
+            setRoute(keyOrObj.route);
+          }
+        }
+      }}
       routes={routes}
       user={user}
       onLogout={() => { setUser(null); localStorage.removeItem('user'); localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); }}

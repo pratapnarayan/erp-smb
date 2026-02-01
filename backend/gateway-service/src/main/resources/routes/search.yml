@@ -1,0 +1,24 @@
+# Search Service Routes
+# Rate-limited, read-only routes for search functionality
+# CRITICAL: Indexing endpoints (/api/search/index/**, /api/search/reindex/**) are NOT exposed
+
+routes:
+  search:
+    # Global search endpoint - moderate rate limit
+    - id: search
+      path: /api/search
+      url: http://localhost:8090
+      stripPrefix: false
+      description: "Global search across products, customers, orders"
+      
+  suggestions:
+    # Autocomplete endpoint - strict rate limit
+    - id: search-suggestions
+      path: /api/search/suggestions
+      url: http://localhost:8090
+      stripPrefix: false
+      description: "Autocomplete suggestions for search"
+
+# SECURITY NOTE:
+# /api/search/index/** and /api/search/reindex/** are NOT routed
+# These endpoints are accessible only via internal service-to-service calls

@@ -65,6 +65,8 @@ services:
       dockerfile: gateway-service/Dockerfile
     environment:
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      # Allow frontend container origin (3000) and local Vite dev origin (5173)
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
       SPRING_CLOUD_DISCOVERY_CLIENT_SIMPLE_RETRY_ENABLED: "true"
     ports:
@@ -79,10 +81,6 @@ services:
         condition: service_healthy
       config-service:
         condition: service_healthy
-      auth-service:
-        condition: service_started
-      user-service:
-        condition: service_started
 
   auth-service:
     build:
@@ -135,6 +133,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -155,6 +154,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -175,6 +175,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -265,6 +266,32 @@ services:
       config-service:
         condition: service_healthy
       discovery-service:
+        condition: service_healthy
+
+  search-service:
+    build:
+      context: ./backend
+      dockerfile: search-service/Dockerfile
+    environment:
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-erp}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-erp}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-erp}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      EUREKA_CLIENT_REGISTRY_FETCH_INTERVAL_SECONDS: 10
+    ports:
+      - '8090:8090'
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8090/actuator/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      gateway-service:
         condition: service_healthy
 
   frontend:

@@ -4,6 +4,12 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: none
@@ -28,6 +34,9 @@ app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
     access-ttl: 3600
+  search:
+    service-url: http://localhost:8090
+    system-token: SYSTEM_INTERNAL_TOKEN
 
 springdoc:
   api-docs:

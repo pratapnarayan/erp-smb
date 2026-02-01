@@ -1,5 +1,5 @@
 import React from 'react';
-import SearchInput from './SearchInput.jsx';
+import GlobalSearch from './GlobalSearch.jsx';
 
 export default function AppShell({ children, routes, route, onNavigate, theme, setTheme, user, onLogout }) {
   return (
@@ -39,7 +39,7 @@ export default function AppShell({ children, routes, route, onNavigate, theme, s
         <header className="topbar frosted">
           <h1 className="topbar-title">{routes.find((r) => r.key === route)?.label}</h1>
           <div className="topbar-actions">
-            <SearchInput placeholder="Search customers, orders, items..." />
+            <GlobalSearch onNavigate={onNavigate} />
             <span className="badge">{user?.role}</span>
             <button className="topbar-btn" aria-label="Notifications">🔔</button>
             <button className="topbar-btn" onClick={onLogout} aria-label="Logout">⎋</button>

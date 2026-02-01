@@ -3,6 +3,7 @@ package com.erp.smb.order.web;
 import com.erp.smb.common.dto.PageResponse;
 import com.erp.smb.order.domain.SalesOrder;
 import com.erp.smb.order.repo.SalesOrderRepository;
+import com.erp.smb.order.service.OrderService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/orders")
 public class OrderController {
   private final SalesOrderRepository repo;
-  public OrderController(SalesOrderRepository repo){this.repo=repo;}
+  private final OrderService orderService;
+  
+  public OrderController(SalesOrderRepository repo, OrderService orderService){
+    this.repo=repo;
+    this.orderService=orderService;
+  }
   @GetMapping
   public ResponseEntity<PageResponse<SalesOrder>> list(
       @RequestParam(name = "page", defaultValue = "0") int page,
@@ -21,5 +27,7 @@ public class OrderController {
     return ResponseEntity.ok(new PageResponse<>(p.getContent(), p.getNumber(), p.getSize(), p.getTotalElements(), p.getTotalPages()));
   }
   @PostMapping
-  public SalesOrder create(@RequestBody SalesOrder so){ return repo.save(so);} 
+  public SalesOrder create(@RequestBody SalesOrder so, @RequestHeader("X-Tenant-Id") String tenantId){ 
+    return orderService.createOrder(so, tenantId);
+  } 
 }
