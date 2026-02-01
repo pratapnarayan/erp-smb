@@ -2,6 +2,7 @@ package com.erp.smb.product.client;
 
 import com.erp.smb.common.search.SearchDocument;
 import com.erp.smb.common.search.SearchEntityType;
+import com.erp.smb.common.security.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 /**
  * Client for interacting with search-service indexing APIs.
- * Uses SYSTEM role / internal authentication.
+ * Uses ADMIN role / internal authentication.
  * Failures are logged but do not propagate to caller.
  */
 @Component
@@ -27,15 +28,27 @@ public class SearchIndexClient {
     
     private final RestTemplate restTemplate;
     private final String searchServiceUrl;
-    private final String systemToken;
-    
+    private final String systemJwt;
+
     public SearchIndexClient(
             RestTemplate restTemplate,
             @Value("${app.search.service-url:http://localhost:8090}") String searchServiceUrl,
-            @Value("${app.search.system-token:SYSTEM_INTERNAL_TOKEN}") String systemToken) {
+            @Value("${app.search.system-token:}") String systemToken,
+            @Value("${app.jwt.secret}") String jwtSecret,
+            @Value("${app.jwt.access-ttl:3600}") long accessTtlSeconds) {
         this.restTemplate = restTemplate;
         this.searchServiceUrl = searchServiceUrl;
-        this.systemToken = systemToken;
+
+        // Prefer an explicitly provided ADMIN JWT (if configured); otherwise generate
+        // a signed token using the shared platform secret.
+        if (systemToken != null && systemToken.contains(".") && systemToken.split("\\.").length >= 3) {
+            this.systemJwt = systemToken;
+        } else {
+            JwtUtils jwtUtils = new JwtUtils(jwtSecret, accessTtlSeconds, accessTtlSeconds * 24);
+            this.systemJwt = jwtUtils.generateAccessToken(
+                    "system",
+                    Map.of("roles", java.util.List.of("ADMIN"), "tenantId", "system"));
+        }
     }
     
     /**
@@ -86,7 +99,7 @@ public class SearchIndexClient {
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(systemToken);
+        headers.setBearerAuth(systemJwt);
         return headers;
     }
 }

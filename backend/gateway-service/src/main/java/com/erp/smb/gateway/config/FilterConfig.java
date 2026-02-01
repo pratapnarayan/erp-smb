@@ -21,7 +21,13 @@ public class FilterConfig {
     public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration() {
         FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(rateLimitFilter());
-        registration.addUrlPatterns("/api/search/*", "/api/search/suggestions/*");
+        // Include both the collection endpoints (/api/search, /api/search/suggestions)
+        // and any subpaths (if added later).
+        registration.addUrlPatterns(
+                "/api/search",
+                "/api/search/*",
+                "/api/search/suggestions",
+                "/api/search/suggestions/*");
         registration.setOrder(1); // Execute before security filter
         return registration;
     }

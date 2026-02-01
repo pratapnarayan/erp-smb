@@ -29,8 +29,8 @@ public class SearchIndexController {
     }
     
     @PostMapping("/products")
-    @PreAuthorize("hasRole('SYSTEM')")
-    @Operation(summary = "Index a product", description = "Add or update product in search index. SYSTEM role only.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Index a product", description = "Add or update product in search index. ADMIN role only.")
     public ResponseEntity<Void> indexProduct(@RequestBody SearchDocument document) {
         SearchProduct product = new SearchProduct();
         product.setEntityId(document.getEntityId());
@@ -45,8 +45,8 @@ public class SearchIndexController {
     }
     
     @PostMapping("/customers")
-    @PreAuthorize("hasRole('SYSTEM')")
-    @Operation(summary = "Index a customer", description = "Add or update customer in search index. SYSTEM role only.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Index a customer", description = "Add or update customer in search index. ADMIN role only.")
     public ResponseEntity<Void> indexCustomer(@RequestBody SearchDocument document) {
         SearchCustomer customer = new SearchCustomer();
         customer.setEntityId(document.getEntityId());
@@ -62,8 +62,8 @@ public class SearchIndexController {
     }
     
     @PostMapping("/orders")
-    @PreAuthorize("hasRole('SYSTEM')")
-    @Operation(summary = "Index an order", description = "Add or update order in search index. SYSTEM role only.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Index an order", description = "Add or update order in search index. ADMIN role only.")
     public ResponseEntity<Void> indexOrder(@RequestBody SearchDocument document) {
         SearchOrder order = new SearchOrder();
         order.setEntityId(document.getEntityId());
@@ -87,8 +87,8 @@ public class SearchIndexController {
     }
     
     @DeleteMapping("/{entityType}/{entityId}")
-    @PreAuthorize("hasRole('SYSTEM')")
-    @Operation(summary = "Delete from index", description = "Remove entity from search index. SYSTEM role only.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete from index", description = "Remove entity from search index. ADMIN role only.")
     public ResponseEntity<Void> deleteFromIndex(
             @PathVariable SearchEntityType entityType,
             @PathVariable String entityId,

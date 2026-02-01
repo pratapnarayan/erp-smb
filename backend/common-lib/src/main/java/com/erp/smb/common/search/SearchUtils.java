@@ -9,6 +9,13 @@ public class SearchUtils {
     
     private static final Pattern SPECIAL_CHARS = Pattern.compile("[^a-zA-Z0-9\\s]");
     private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
+
+    // Code-like queries such as SO-1005, SKU-1005, INV-2024-001.
+    // Heuristics:
+    // - No spaces
+    // - Contains at least one digit
+    // - Only letters/digits and common separators (-, _, /)
+    private static final Pattern CODE_LIKE_QUERY = Pattern.compile("^(?=.*\\d)[a-zA-Z0-9][a-zA-Z0-9\\-_/]*$");
     
     /**
      * Normalize and sanitize search query
@@ -77,14 +84,90 @@ public class SearchUtils {
         // Remove single quotes and other SQL special characters
         return input.replaceAll("['\"\\\\;]", "");
     }
+
+    /**
+     * Returns true if the query looks like an identifier/code (e.g. SO-1005).
+     *
+     * These queries should typically be treated as exact matches to avoid noisy results
+     * from tokenization and fuzzy matching.
+     */
+    public static boolean isCodeLikeQuery(String query) {
+        if (query == null) {
+            return false;
+        }
+        String trimmed = query.trim();
+        if (trimmed.isEmpty() || trimmed.contains(" ")) {
+            return false;
+        }
+        return CODE_LIKE_QUERY.matcher(trimmed).matches();
+    }
+
+    /**
+     * Normalize a code query for exact matching:
+     * - Trim
+     * - Lowercase
+     *
+     * Note: We intentionally keep separators like '-' to preserve identifiers.
+     */
+    public static String normalizeCodeQuery(String query) {
+        if (query == null) {
+            return "";
+        }
+        return query.trim().toLowerCase();
+    }
     
     /**
-     * Extract tenant ID from JWT token or header
-     * This is a placeholder - actual implementation depends on JWT structure
+     * Extract tenant id.
+     *
+     * Resolution order (matches gateway behavior):
+     * 1) Explicit `X-Tenant-Id` header value (if non-blank)
+     * 2) JWT claim: `tenantId`, `tenant_id`, or `tenant`
+     *
+     * Returns null if no tenant could be resolved.
      */
-    public static String extractTenantId(String token) {
-        // TODO: Implement JWT parsing logic
-        // For now, return a default
-        return "demo";
+    public static String extractTenantId(String tenantHeader, String authorizationHeader, com.erp.smb.common.security.JwtUtils jwtUtils) {
+        if (tenantHeader != null && !tenantHeader.isBlank()) {
+            return tenantHeader;
+        }
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ") || jwtUtils == null) {
+            return null;
+        }
+        try {
+            var claims = jwtUtils.parse(authorizationHeader.substring(7)).getBody();
+            Object t = claims.get("tenantId");
+            if (t == null) {
+                t = claims.get("tenant_id");
+            }
+            if (t == null) {
+                t = claims.get("tenant");
+            }
+            return t != null ? String.valueOf(t) : null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Backwards-compatible helper: tries to parse the provided JWT and extract tenant claims.
+     *
+     * Note: This method does not default to any hardcoded tenant.
+     */
+    public static String extractTenantIdFromJwt(String jwtToken, com.erp.smb.common.security.JwtUtils jwtUtils) {
+        if (jwtToken == null || jwtToken.isBlank() || jwtUtils == null) {
+            return null;
+        }
+        try {
+            var claims = jwtUtils.parse(jwtToken).getBody();
+            Object t = claims.get("tenantId");
+            if (t == null) {
+                t = claims.get("tenant_id");
+            }
+            if (t == null) {
+                t = claims.get("tenant");
+            }
+            return t != null ? String.valueOf(t) : null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

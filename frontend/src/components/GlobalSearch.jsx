@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import SearchAutocomplete from './SearchAutocomplete';
 import { getSearchSuggestions } from '../api/clients/search';
 
@@ -13,7 +12,7 @@ import { getSearchSuggestions } from '../api/clients/search';
  * - Cancels in-flight requests
  * - Handles rate limiting (429)
  */
-const GlobalSearch = () => {
+const GlobalSearch = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,27 @@ const GlobalSearch = () => {
   const debounceTimer = useRef(null);
   const abortController = useRef(null);
   
-  const navigate = useNavigate();
+  const navigate = (to) => {
+    // Router-agnostic navigation: this app uses state-based routing (route keys)
+    if (typeof onNavigate !== 'function') return;
+
+    if (typeof to === 'string' && to.startsWith('/search')) {
+      const qMatch = to.match(/[?&]q=([^&]+)/);
+      const q = qMatch ? decodeURIComponent(qMatch[1]) : '';
+      onNavigate({ type: 'search', query: q });
+      return;
+    }
+
+    // Map paths to App route keys
+    const pathToKey = {
+      '/': 'dashboard',
+      '/inventory': 'inventory',
+      '/sales': 'sales',
+      '/orders': 'orders'
+    };
+
+    onNavigate(pathToKey[to] || 'dashboard');
+  };
   
   // Debounced autocomplete
   useEffect(() => {
@@ -148,10 +167,17 @@ const GlobalSearch = () => {
   };
   
   const handleSearch = () => {
-    if (query.trim()) {
-      setShowDropdown(false);
-      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
-    }
+    const q = query.trim();
+    if (!q) return;
+
+    setShowDropdown(false);
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+
+    // Reset input after navigation so the search bar is ready for the next search.
+    // (Navigation uses the captured `q`, so clearing local state won't affect the results page.)
+    setQuery('');
+    setSuggestions([]);
+    setSelectedIndex(-1);
   };
   
   const handleClickOutside = (e) => {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 import { globalSearch } from '../api/clients/search';
 import SearchResults from '../components/SearchResults';
 
@@ -19,32 +18,28 @@ import SearchResults from '../components/SearchResults';
  * - No entity-specific fetching
  * - SearchHit DTO only
  */
-const SearchPage = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  const query = searchParams.get('q') || '';
+const SearchPage = ({ query = '', onNavigate }) => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [entityTypeFilter, setEntityTypeFilter] = useState(null);
-  
+
   const pageSize = 20;
-  
+
   useEffect(() => {
     if (!query.trim()) {
-      navigate('/');
+      if (typeof onNavigate === 'function') onNavigate('dashboard');
       return;
     }
-    
+
     performSearch();
   }, [query, page, entityTypeFilter]);
-  
+
   const performSearch = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await globalSearch(query, entityTypeFilter, page, pageSize);
       setResults(response);
@@ -58,19 +53,19 @@ const SearchPage = () => {
       setLoading(false);
     }
   };
-  
+
   const handleEntityTypeToggle = (type) => {
     setEntityTypeFilter(prev => prev === type ? null : type);
     setPage(0); // Reset to first page
   };
-  
+
   const handlePageChange = (newPage) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   const entityTypes = ['PRODUCT', 'CUSTOMER', 'ORDER'];
-  
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -84,7 +79,7 @@ const SearchPage = () => {
           </p>
         )}
       </div>
-      
+
       <div style={styles.filters}>
         <span style={styles.filterLabel}>Filter by:</span>
         {entityTypes.map(type => (
@@ -108,7 +103,7 @@ const SearchPage = () => {
           </button>
         )}
       </div>
-      
+
       {loading && (
         <div style={styles.loadingContainer}>
           <div style={styles.skeletonCard}></div>
@@ -116,7 +111,7 @@ const SearchPage = () => {
           <div style={styles.skeletonCard}></div>
         </div>
       )}
-      
+
       {error && (
         <div style={styles.errorContainer}>
           <p style={styles.errorMessage}>{error}</p>
@@ -125,7 +120,7 @@ const SearchPage = () => {
           </button>
         </div>
       )}
-      
+
       {!loading && !error && results && (
         <>
           {results.totalCount === 0 ? (
@@ -135,8 +130,8 @@ const SearchPage = () => {
             </div>
           ) : (
             <>
-              <SearchResults results={results.results} />
-              
+              <SearchResults results={results.results} onNavigate={onNavigate} />
+
               {results.totalCount > pageSize && (
                 <div style={styles.pagination}>
                   <button
@@ -149,11 +144,11 @@ const SearchPage = () => {
                   >
                     Previous
                   </button>
-                  
+
                   <span style={styles.paginationInfo}>
                     Page {page + 1} of {Math.ceil(results.totalCount / pageSize)}
                   </span>
-                  
+
                   <button
                     onClick={() => handlePageChange(page + 1)}
                     disabled={!results.hasNext}

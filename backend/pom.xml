@@ -52,6 +52,7 @@
     <module>hrms-service</module>
     <module>enquiry-service</module>
     <module>reporting-service</module>
+    <module>search-service</module>
   </modules>
   <dependencies>
     <dependency>

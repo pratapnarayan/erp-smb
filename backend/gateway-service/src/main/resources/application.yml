@@ -53,6 +53,17 @@ proxy:
       uri: lb://reporting-service
       stripPrefix: false
 
+    # Search routes (read-only). Indexing endpoints are explicitly denied in SecurityConfig.
+    # Put suggestions first so it matches before the broader /api/search/** route.
+    - id: search-suggestions
+      path: /api/search/suggestions/**
+      uri: lb://search-service
+      stripPrefix: false
+    - id: search
+      path: /api/search/**
+      uri: lb://search-service
+      stripPrefix: false
+
 springdoc:
   swagger-ui:
     display-operation-id: true

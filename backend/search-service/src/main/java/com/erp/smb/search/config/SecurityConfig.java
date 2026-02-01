@@ -31,7 +31,7 @@ public class SecurityConfig {
     
     @Bean
     public JwtUtils jwtUtils() {
-        return new JwtUtils(jwtSecret, accessTokenTtl);
+        return new JwtUtils(jwtSecret, accessTokenTtl, accessTokenTtl * 24);
     }
     
     @Bean

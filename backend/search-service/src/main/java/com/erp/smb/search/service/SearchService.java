@@ -55,26 +55,43 @@ public class SearchService {
         long startTime = System.currentTimeMillis();
         
         String tenantId = criteria.getTenantId();
-        String query = SearchUtils.normalizeQuery(criteria.getQuery());
+
+        // Preserve the raw query to detect identifier/code lookups (e.g., SO-1005, SKU-1005).
+        String rawQuery = criteria.getQuery();
+        String query = SearchUtils.normalizeQuery(rawQuery);
         int limit = Math.min(criteria.getSize(), maxResults);
+
+        // Code-like queries should be treated as exact matches to avoid noisy results from
+        // normalization/tokenization (e.g., "SO-1005" -> "so 1005") and fuzzy similarity.
+        boolean codeLike = SearchUtils.isCodeLikeQuery(rawQuery);
+        String codeQuery = codeLike ? SearchUtils.normalizeCodeQuery(rawQuery) : null;
         
         // Validate entity type is v1-supported
         if (criteria.getEntityType() != null && !criteria.getEntityType().isV1Supported()) {
             throw new IllegalArgumentException("Entity type " + criteria.getEntityType() + " is not supported in v1");
         }
         
-        // Fuzzy search guardrail: disable for short queries
-        boolean useFuzzy = criteria.isFuzzyMatch() && query.length() >= 3;
-        
+        // Fuzzy search guardrail: disable for short queries and for code-like queries
+        boolean useFuzzy = criteria.isFuzzyMatch() && query.length() >= 3 && !codeLike;
+
         List<SearchHit> results = new ArrayList<>();
-        
-        if (criteria.getEntityType() == null) {
+
+        // For code-like queries, short-circuit to exact matching first (and only).
+        if (codeLike) {
+            if (criteria.getEntityType() == null) {
+                results.addAll(searchProductsAsHits(tenantId, codeQuery, limit, false));
+                results.addAll(searchCustomersAsHits(tenantId, codeQuery, limit, false));
+                results.addAll(searchOrdersAsHits(tenantId, codeQuery, limit, false));
+            } else {
+                results.addAll(searchByTypeAsHits(criteria.getEntityType(), tenantId, codeQuery, limit, false));
+            }
+        } else if (criteria.getEntityType() == null) {
             // Search all v1-supported entity types
             // Always try full-text first
             results.addAll(searchProductsAsHits(tenantId, query, limit, false));
             results.addAll(searchCustomersAsHits(tenantId, query, limit, false));
             results.addAll(searchOrdersAsHits(tenantId, query, limit, false));
-            
+
             // If full-text results are insufficient and fuzzy is enabled, try fuzzy
             if (useFuzzy && results.size() < limit / 2) {
                 results.addAll(searchProductsAsHits(tenantId, query, limit - results.size(), true));
@@ -84,7 +101,7 @@ public class SearchService {
         } else {
             // Search specific entity type with same guardrails
             results.addAll(searchByTypeAsHits(criteria.getEntityType(), tenantId, query, limit, false));
-            
+
             if (useFuzzy && results.size() < limit / 2) {
                 results.addAll(searchByTypeAsHits(criteria.getEntityType(), tenantId, query, limit - results.size(), true));
             }
@@ -215,7 +232,7 @@ public class SearchService {
     /**
      * Bulk reindex for a specific entity type.
      * Idempotent - can be run multiple times safely.
-     * SYSTEM role only.
+     * ADMIN role only.
      * 
      * @param entityType The entity type to reindex
      * @param tenantId The tenant to reindex for
@@ -315,19 +332,28 @@ public class SearchService {
         if (fuzzy) {
             return productRepository.fuzzySearch(tenantId, query, limit);
         }
+        if (SearchUtils.isCodeLikeQuery(query)) {
+            return productRepository.exactCodeMatch(tenantId, SearchUtils.normalizeCodeQuery(query), limit);
+        }
         return productRepository.fullTextSearch(tenantId, query, limit);
     }
-    
+
     private List<SearchCustomer> searchCustomers(String tenantId, String query, int limit, boolean fuzzy) {
         if (fuzzy) {
             return customerRepository.fuzzySearch(tenantId, query, limit);
         }
+        if (SearchUtils.isCodeLikeQuery(query)) {
+            return customerRepository.exactCodeMatch(tenantId, SearchUtils.normalizeCodeQuery(query), limit);
+        }
         return customerRepository.fullTextSearch(tenantId, query, limit);
     }
-    
+
     private List<SearchOrder> searchOrders(String tenantId, String query, int limit, boolean fuzzy) {
         if (fuzzy) {
             return orderRepository.fuzzySearch(tenantId, query, limit);
+        }
+        if (SearchUtils.isCodeLikeQuery(query)) {
+            return orderRepository.exactCodeMatch(tenantId, SearchUtils.normalizeCodeQuery(query), limit);
         }
         return orderRepository.fullTextSearch(tenantId, query, limit);
     }

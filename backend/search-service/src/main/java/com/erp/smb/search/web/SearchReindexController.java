@@ -25,9 +25,9 @@ public class SearchReindexController {
     }
     
     @PostMapping("/{entityType}")
-    @PreAuthorize("hasRole('SYSTEM')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Bulk reindex entity type", 
-               description = "Rebuild search index for specific entity type. SYSTEM role only. Idempotent.")
+               description = "Rebuild search index for specific entity type. ADMIN role only. Idempotent.")
     public ResponseEntity<Map<String, Object>> reindexEntityType(
             @PathVariable SearchEntityType entityType,
             @RequestHeader("X-Tenant-Id") String tenantId) {
@@ -53,9 +53,9 @@ public class SearchReindexController {
     }
     
     @PostMapping("/all")
-    @PreAuthorize("hasRole('SYSTEM')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Bulk reindex all entities", 
-               description = "Rebuild search index for all v1 entity types. SYSTEM role only. Idempotent.")
+               description = "Rebuild search index for all v1 entity types. ADMIN role only. Idempotent.")
     public ResponseEntity<Map<String, Object>> reindexAll(
             @RequestHeader("X-Tenant-Id") String tenantId) {
         

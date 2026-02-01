@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
 /**
  * Search results list component.
@@ -10,8 +9,10 @@ import { useNavigate } from 'react-router-dom';
  * - Icons/colors based on entityType enum only
  * - Relevance-based order (server-provided)
  */
-const SearchResults = ({ results }) => {
-  const navigate = useNavigate();
+const SearchResults = ({ results, onNavigate }) => {
+  const navigate = (routeKey) => {
+    if (typeof onNavigate === 'function') onNavigate(routeKey);
+  };
   
   // Entity type icons (enum-based only, no branching)
   const getEntityIcon = (entityType) => {
