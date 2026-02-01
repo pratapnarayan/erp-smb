@@ -59,6 +59,15 @@ open http://localhost:3000
    npm run dev
    ```
 
+## Recent Updates
+
+### Search improvements
+- **Exact code/identifier search**: Code-like queries such as `SO-1005` or `SKU-1005` are treated as exact matches to avoid noisy results from tokenization and fuzzy matching.
+- **Search bar UX**: After entering a query and navigating to the results page, the global search input is reset so it’s ready for the next search.
+
+### Security / roles
+- **Search indexing & reindexing endpoints** now require the `ADMIN` role (previously referenced a non-existent `SYSTEM` role).
+
 ## Documentation
 
 For detailed documentation, please refer to:

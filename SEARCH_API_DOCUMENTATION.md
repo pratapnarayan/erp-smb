@@ -4,6 +4,12 @@
 
 The Search Service provides tenant-aware, performant global search across Products, Customers, and Orders using PostgreSQL full-text search.
 
+## Recent Updates (2026)
+
+- **Exact code/identifier search**: Code-like queries such as `SO-1005` or `SKU-1005` are treated as exact matches against identifier fields to avoid noisy results from tokenization and fuzzy matching.
+- **Frontend UX**: After submitting a query and navigating to the search results page, the global search input resets (clears query + suggestions).
+- **Security**: Indexing and bulk reindex endpoints require `ADMIN` role (internal service-to-service).
+
 **Base URL:** `http://localhost:8090` (direct) or `http://localhost:8080/api/search` (via gateway)
 
 **Version:** 1.0 (MVP)
@@ -132,7 +138,7 @@ curl -H "Authorization: Bearer <token>" \
 
 **Endpoint:** `POST /api/search/index/{entityType}`
 
-**Authentication:** SYSTEM role only (internal service-to-service)
+**Authentication:** ADMIN role only (internal service-to-service)
 
 **Rate Limit:** None
 
@@ -163,7 +169,7 @@ curl -H "Authorization: Bearer <token>" \
 **Important:** 
 - ⚠️ NOT accessible via gateway
 - ⚠️ Called by entity services only
-- ⚠️ Uses internal SYSTEM token
+- ⚠️ Uses internal ADMIN token
 
 ---
 
@@ -171,14 +177,14 @@ curl -H "Authorization: Bearer <token>" \
 
 **Endpoint:** `DELETE /api/search/index/{entityType}/{entityId}`
 
-**Authentication:** SYSTEM role only
+**Authentication:** ADMIN role only
 
 **Description:** Remove entity from search index.
 
 **Example:** `DELETE /api/search/index/PRODUCT/123`
 
 **Headers:**
-- `Authorization: Bearer <system-token>`
+- `Authorization: Bearer <admin-token>`
 - `X-Tenant-Id: <tenant-id>`
 
 ---
@@ -187,7 +193,7 @@ curl -H "Authorization: Bearer <token>" \
 
 **Endpoint:** `POST /api/search/reindex/{entityType}`
 
-**Authentication:** SYSTEM role only
+**Authentication:** ADMIN role only
 
 **Description:** Rebuild search index for entire entity type. Idempotent.
 
@@ -215,7 +221,7 @@ curl -H "Authorization: Bearer <token>" \
 
 **Endpoint:** `POST /api/search/reindex/all`
 
-**Authentication:** SYSTEM role only
+**Authentication:** ADMIN role only
 
 **Description:** Rebuild search index for all v1 entity types.
 
@@ -259,7 +265,7 @@ Retry-After: 60
 
 ### Authentication
 - **JWT Bearer Token:** Required for all user-facing endpoints
-- **SYSTEM Token:** Required for indexing/reindex endpoints
+- **ADMIN Token:** Required for indexing/reindex endpoints
 
 ### Authorization
 
@@ -268,7 +274,7 @@ Retry-After: 60
 - Anonymous access: Denied
 
 **Internal Endpoints:**
-- Role required: `SYSTEM` only
+- Role required: `ADMIN` only
 - User roles: Explicitly denied
 - Gateway: Does not route these endpoints
 
@@ -329,7 +335,7 @@ Retry-After: 60
 }
 ```
 - Returned for indexing endpoints accessed via gateway
-- Returned for SYSTEM-only endpoints without SYSTEM role
+- Returned for ADMIN-only endpoints without ADMIN role
 
 ### 429 Too Many Requests
 ```json
@@ -365,11 +371,11 @@ Retry-After: 60
 After deploying search-service for the first time:
 
 1. Ensure search-service is running
-2. Use SYSTEM token to call reindex endpoints
+2. Use ADMIN token to call reindex endpoints
 3. Run for each tenant:
    ```bash
    curl -X POST \
-     -H "Authorization: Bearer <system-token>" \
+     -H "Authorization: Bearer <admin-token>" \
      -H "X-Tenant-Id: <tenant-id>" \
      http://localhost:8090/api/search/reindex/all
    ```
@@ -380,7 +386,7 @@ If search index becomes inconsistent:
 1. Reindex specific entity type:
    ```bash
    curl -X POST \
-     -H "Authorization: Bearer <system-token>" \
+     -H "Authorization: Bearer <admin-token>" \
      -H "X-Tenant-Id: <tenant-id>" \
      http://localhost:8090/api/search/reindex/PRODUCT
    ```
@@ -390,7 +396,7 @@ Normally automatic, but if needed:
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer <system-token>" \
+  -H "Authorization: Bearer <admin-token>" \
   -H "Content-Type: application/json" \
   -d '{
     "entityId": "123",

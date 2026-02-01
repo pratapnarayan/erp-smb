@@ -3,6 +3,12 @@
 ## Overview
 Implementation of a tenant-aware, performant search system for the ERP-SMB platform with PostgreSQL full-text search capabilities.
 
+## Recent Updates (2026)
+
+- **Exact code/identifier search**: Code-like queries (e.g., `SO-1005`, `SKU-1005`) now use exact matching against identifier fields and skip fuzzy matching to prevent overmatching.
+- **Frontend UX**: Global search input resets after navigating to the results page.
+- **Security**: Indexing and bulk reindex endpoints now require `ADMIN` role (replacing the previously referenced `SYSTEM` role).
+
 ---
 
 ## ✅ Completed Components (6/9 Tasks)
@@ -284,7 +290,7 @@ Each repository (`SearchProductRepository`, `SearchCustomerRepository`, `SearchO
 - All endpoints require JWT authentication
 - Role-based access control:
   - Search: ADMIN, OWNER, MANAGER, USER
-  - Indexing: ADMIN, OWNER, SYSTEM
+  - Indexing: ADMIN
 
 ---
 

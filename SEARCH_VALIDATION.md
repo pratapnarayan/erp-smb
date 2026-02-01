@@ -6,6 +6,12 @@
 
 ---
 
+## Recent Updates (2026)
+
+- **Exact code/identifier search**: Code-like queries now use exact matching against identifier fields and skip fuzzy matching.
+- **Frontend UX**: Global search input resets after navigating to the results page.
+- **Security**: Indexing and bulk reindex endpoints require `ADMIN` role (not `SYSTEM`).
+
 ## Validation Summary
 
 All sections (1-9) of the search feature implementation have been completed and validated.
@@ -32,7 +38,7 @@ All sections (1-9) of the search feature implementation have been completed and 
 ### ✅ Section 3: Security Hardening
 - **Status:** PASS
 - **Validated:**
-  - All indexing endpoints: `@PreAuthorize("hasRole('SYSTEM')")`
+  - All indexing endpoints: `@PreAuthorize("hasRole('ADMIN')")`
   - Gateway explicitly denies: `/api/search/index/**`, `/api/search/reindex/**`
   - RateLimitFilter blocks external access with 403
   - USER, MANAGER, OWNER, ADMIN explicitly prevented from indexing
@@ -42,7 +48,7 @@ All sections (1-9) of the search feature implementation have been completed and 
 - **Validated:**
   - `POST /api/search/reindex/{entityType}` - Idempotent
   - `POST /api/search/reindex/all` - Reindexes all v1 types
-  - SYSTEM role only
+  - ADMIN role only
   - Logging with duration and count
   - Returns structured response with metrics
 
@@ -161,7 +167,7 @@ pwsh backend/tmp_rovodev_performance_test.ps1
 - Unauthenticated requests blocked: **PASS** (code review)
 
 ### ✅ Authorization
-- Indexing SYSTEM-only: **PASS** (code review)
+- Indexing ADMIN-only: **PASS** (code review)
 - User roles cannot index: **PASS** (code review)
 
 ### ✅ Endpoint Protection
@@ -227,7 +233,7 @@ pwsh backend/tmp_rovodev_performance_test.ps1
 - [ ] Run bulk reindex for all tenants: `POST /api/search/reindex/all`
 - [ ] Update gateway routes in production config
 - [ ] Configure production JWT secret (change from default)
-- [ ] Configure SYSTEM token for service-to-service auth
+- [ ] Configure ADMIN token for service-to-service auth
 - [ ] Add production frontend domain to CORS
 - [ ] Tune rate limits based on expected load
 - [ ] Set up monitoring alerts for search latency

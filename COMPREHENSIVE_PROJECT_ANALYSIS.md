@@ -1318,6 +1318,22 @@ docker-compose exec postgres psql -U erp -d erp
 
 ---
 
+## Recent Updates (2026)
+
+### Global Search: exact identifier matching
+A common UX issue with full-text + fuzzy search is that identifier-like queries can overmatch. For example, `SO-1005` could be normalized to `so 1005` and then match many adjacent items.
+
+Updates:
+- Added code-like query detection in `common-lib` (`SearchUtils.isCodeLikeQuery`).
+- For code-like queries (e.g., `SO-1005`, `SKU-1005`), search now uses **exact matching** against identifier fields (order number, SKU, entity IDs, etc.) and **skips fuzzy matching**.
+
+### Frontend: global search bar reset
+- When a user submits a search (Enter / navigate to results page), the global search input resets (clears query + suggestions) to improve repeat-search workflows.
+
+### Security: remove non-existent SYSTEM role
+- Replaced all instances of `SYSTEM` role checks with `ADMIN` on search index/reindex endpoints.
+- Internal index clients (product/order/sales services) now generate JWTs with `roles: ["ADMIN"]` when calling these endpoints.
+
 ## 🎯 Future Enhancements
 
 ### Short Term
