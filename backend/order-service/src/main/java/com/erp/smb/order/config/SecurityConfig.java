@@ -18,6 +18,8 @@ public class SecurityConfig {
        .sessionManagement(sm->sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
        .authorizeHttpRequests(auth->auth
          .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+         // Dashboard KPI aggregate (read-only)
+         .requestMatchers("/api/orders/count").permitAll()
          .anyRequest().authenticated())
        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatINR } from '../utils/formatCurrency.js';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 
@@ -8,7 +9,7 @@ const columns = [
   { key: 'txDate', label: 'Date' },
   { key: 'account', label: 'Account' },
   { key: 'txType', label: 'Type' },
-  { key: 'amount', label: 'Amount' },
+  { key: 'amount', label: 'Amount', render: (v) => formatINR(v) },
   { key: 'memo', label: 'Memo' },
 ];
 

@@ -34,6 +34,11 @@ app:
   jwt:
     secret: dev-secret-please-change-32-chars-minimum-123456
     access-ttl: 3600
+  services:
+    # Local dev override: cross-service KPI aggregates are served by local ports.
+    # (In docker-compose, application.yml defaults use service DNS names.)
+    orders-base-url: http://localhost:8084
+    products-base-url: http://localhost:8083
 
 springdoc:
   api-docs:

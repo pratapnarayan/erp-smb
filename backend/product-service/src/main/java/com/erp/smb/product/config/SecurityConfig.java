@@ -45,6 +45,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+            // Dashboard KPI aggregate (read-only)
+            .requestMatchers("/api/products/inventory/turnover").permitAll()
             .anyRequest().authenticated())
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
