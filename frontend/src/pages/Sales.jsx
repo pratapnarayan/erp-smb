@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatINR } from '../utils/formatCurrency.js';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -8,7 +9,7 @@ const columns = [
   { key: 'customer', label: 'Customer' },
   { key: 'status', label: 'Status', render: (v) => <Badge color={v === 'Paid' ? 'green' : v === 'Draft' ? 'amber' : 'red'}>{v}</Badge> },
   { key: 'due', label: 'Due Date' },
-  { key: 'amount', label: 'Amount' },
+  { key: 'amount', label: 'Amount', render: (v) => formatINR(v) },
 ];
 
 import http from '../api/clients/http.js';

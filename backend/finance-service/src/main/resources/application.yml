@@ -28,3 +28,8 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
     access-ttl: 3600
+  services:
+    # Base URLs used by FinanceKpiService to call read-only aggregate endpoints.
+    # In docker-compose, service names resolve via the docker network.
+    orders-base-url: ${ORDERS_SERVICE_BASE_URL:http://order-service:8084}
+    products-base-url: ${PRODUCTS_SERVICE_BASE_URL:http://product-service:8083}
