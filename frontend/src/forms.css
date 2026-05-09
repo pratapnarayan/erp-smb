@@ -1,6 +1,7 @@
 .form { display: grid; gap: 12px; }
 .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .form-grid .span-2 { grid-column: span 2; }
+.form-grid .span-4 { grid-column: span 4; }
 .form-actions { display:flex; justify-content: flex-end; }
 
 input, select, textarea { 
@@ -27,5 +28,6 @@ input, select, textarea {
 
 @media (max-width: 900px) {
   .form-grid { grid-template-columns: 1fr; }
-  .form-grid .span-2 { grid-column: auto; }
+  .form-grid .span-2,
+  .form-grid .span-4 { grid-column: auto; }
 }

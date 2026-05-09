@@ -142,6 +142,80 @@ body {
   .login-card-body { padding: 16px; }
 }
 
+/* ─── Dark mode: content areas & tables ─────────────────────────────────── */
+.app--dark body,
+.app--dark { background: radial-gradient(1200px 800px at 10% 10%, #4f46e522, transparent), radial-gradient(1200px 800px at 90% 20%, #06b6d422, transparent), hsl(var(--bg)); }
+.app--dark .table thead th { background: hsl(var(--bg-elev)); }
+.app--dark select, .app--dark input, .app--dark textarea { background: hsl(var(--bg-elev)); color: hsl(var(--text)); border-color: hsl(var(--border)); }
+
+/* ─── Dialog / Modal ─────────────────────────────────────────────────────── */
+.dialog-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  display: grid; place-items: center; padding: 24px;
+}
+.dialog {
+  background: hsl(var(--bg-elev)); border: 1px solid hsl(var(--border));
+  border-radius: 14px; padding: 24px; width: min(480px, 96vw);
+  box-shadow: 0 20px 60px hsl(var(--shadow-color));
+  color: hsl(var(--text));
+}
+.dialog--wide { width: min(680px, 96vw); }
+.dialog-title { margin: 0 0 10px; font-size: 18px; }
+.dialog-body { margin: 0 0 20px; color: hsl(var(--muted)); font-size: 14px; line-height: 1.5; }
+.dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ─── Button variants ────────────────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; gap:5px; padding: 7px 14px; border-radius: 9px; border: 1px solid hsl(var(--border)); background: hsl(var(--bg-elev)); color: inherit; cursor: pointer; font-size: 13px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: hsl(var(--primary-500) / 0.15); border-color: hsl(var(--primary-500) / 0.35); color: hsl(var(--primary-500)); }
+.btn-danger { background: hsl(0 80% 55%); border-color: hsl(0 80% 45%); color: #fff; }
+.btn-danger:hover { background: hsl(0 80% 48%); }
+.btn-danger-outline { border-color: hsl(var(--border)); color: var(--red-500); }
+.btn-danger-outline:not(:disabled):hover { background: hsl(0 80% 55% / 0.1); }
+
+/* ─── User dropdown & notifications ─────────────────────────────────────── */
+.user-menu { position: relative; }
+.user-dropdown {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 200;
+  background: hsl(var(--bg-elev)); border: 1px solid hsl(var(--border));
+  border-radius: 12px; box-shadow: 0 10px 40px hsl(var(--shadow-color));
+  min-width: 200px; padding: 6px 0; color: hsl(var(--text));
+}
+.user-dropdown-header { padding: 12px 16px 10px; }
+.user-dropdown-name { font-weight: 600; font-size: 14px; }
+.user-dropdown-role { color: hsl(var(--muted)); font-size: 12px; margin-top: 2px; }
+.user-dropdown-divider { border: none; border-top: 1px solid hsl(var(--border)); margin: 4px 0; }
+.user-dropdown-item {
+  display: block; width: 100%; text-align: left; padding: 9px 16px;
+  border: none; background: none; color: inherit; cursor: pointer; font-size: 13px;
+}
+.user-dropdown-item:hover { background: hsl(var(--primary-500) / 0.08); }
+.user-dropdown-item--danger { color: var(--red-500); }
+.user-dropdown-item--danger:hover { background: hsl(0 80% 55% / 0.08); }
+
+/* ─── Notification bell & dropdown ──────────────────────────────────────── */
+.notif-btn { position: relative; }
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--red-500); color: #fff; font-size: 10px; font-weight: 700;
+  min-width: 16px; height: 16px; border-radius: 999px;
+  display: grid; place-items: center; padding: 0 3px;
+}
+.notif-dropdown { min-width: 320px; max-height: 400px; overflow-y: auto; }
+.notif-item { padding: 10px 16px; border-bottom: 1px solid hsl(var(--border)); }
+.notif-item--unread { background: hsl(var(--primary-500) / 0.06); }
+.notif-text { font-size: 13px; line-height: 1.4; }
+.notif-time { font-size: 11px; color: hsl(var(--muted)); margin-top: 3px; }
+
+/* ─── Form validation styles ─────────────────────────────────────────────── */
+.required { color: var(--red-500); }
+.field-error { display: block; color: var(--red-500); font-size: 11px; margin-top: 3px; }
+.input-error { border-color: var(--red-500) !important; }
+
+/* ─── Table enhancements ─────────────────────────────────────────────────── */
+.table--clickable .table-row--hoverable:hover td { background: hsl(var(--primary-500) / 0.05); }
+
 /* Auth layout */
 .auth-wrapper { min-height: 100vh; display:grid; place-items:center; padding: 24px; }
 .form-error { color: var(--red-500); font-size: 12px; }
