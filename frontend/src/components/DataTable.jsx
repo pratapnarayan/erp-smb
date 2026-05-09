@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
-export default function DataTable({ columns, rows, initialSort }) {
+export default function DataTable({ columns, rows, initialSort, onRowClick }) {
   const [sort, setSort] = useState(initialSort || { key: columns[0]?.key, dir: 'asc' });
 
   const sorted = useMemo(() => {
@@ -20,9 +20,11 @@ export default function DataTable({ columns, rows, initialSort }) {
     return copy;
   }, [rows, sort]);
 
+  const clickable = typeof onRowClick === 'function';
+
   return (
     <div className="table-wrapper">
-      <table className="table">
+      <table className={`table${clickable ? ' table--clickable' : ''}`}>
         <thead>
           <tr>
             {columns.map((c) => (
@@ -39,12 +41,26 @@ export default function DataTable({ columns, rows, initialSort }) {
         </thead>
         <tbody>
           {sorted.map((r, i) => (
-            <tr key={i}>
+            <tr
+              key={r.id ?? i}
+              onClick={clickable ? () => onRowClick(r) : undefined}
+              style={clickable ? { cursor: 'pointer' } : undefined}
+              className={clickable ? 'table-row--hoverable' : undefined}
+            >
               {columns.map((c) => (
-                <td key={c.key}>{c.render ? c.render(r[c.key], r) : r[c.key]}</td>
+                <td key={c.key} onClick={c.key === 'actions' ? (e) => e.stopPropagation() : undefined}>
+                  {c.render ? c.render(r[c.key], r) : r[c.key]}
+                </td>
               ))}
             </tr>
           ))}
+          {sorted.length === 0 && (
+            <tr>
+              <td colSpan={columns.length} style={{ textAlign: 'center', padding: '24px', color: 'hsl(var(--muted))' }}>
+                No records found
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

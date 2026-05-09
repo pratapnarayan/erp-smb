@@ -12,6 +12,7 @@ import Admin from './pages/Admin.jsx';
 import Login from './pages/Login.jsx';
 import Reporting from './pages/Reporting.jsx';
 import SearchPage from './pages/SearchPage.jsx';
+import AuditLog from './pages/AuditLog.jsx';
 
 const routes = [
   { key: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -23,6 +24,7 @@ const routes = [
   { key: 'hrms', label: 'HRMS', icon: '👥' },
   { key: 'reporting', label: 'Reporting', icon: '📈' },
   { key: 'admin', label: 'Admin', icon: '🛡️' },
+  { key: 'auditlog', label: 'Audit Log', icon: '📋' },
   { key: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -71,6 +73,8 @@ export default function App() {
         return <Reporting />;
       case 'settings':
         return <Settings theme={theme} setTheme={setTheme} />;
+      case 'auditlog':
+        return <AuditLog />;
       case 'search':
         return <SearchPage query={searchQuery} onNavigate={setRoute} />;
       default:

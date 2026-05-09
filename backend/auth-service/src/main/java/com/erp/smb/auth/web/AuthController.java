@@ -53,6 +53,26 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("accessToken", access, "refreshToken", refresh, "username", user.getUsername(), "role", user.getRole()));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody ChangePasswordRequest req) {
+      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        return ResponseEntity.status(401).body(Map.of("error", "unauthorized"));
+      }
+      String token = authHeader.substring(7);
+      if (!jwtUtils.validate(token)) return ResponseEntity.status(401).body(Map.of("error", "unauthorized"));
+      String username = jwtUtils.parse(token).getBody().getSubject();
+      var user = users.findByUsername(username).orElse(null);
+      if (user == null) return ResponseEntity.status(404).body(Map.of("error", "user_not_found"));
+      if (!encoder.matches(req.currentPassword(), user.getPassword())) {
+        return ResponseEntity.badRequest().body(Map.of("error", "wrong_password"));
+      }
+      user.setPassword(encoder.encode(req.newPassword()));
+      users.save(user);
+      return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody Map<String,String> body) {
         String token = body.get("refreshToken");
@@ -71,4 +91,5 @@ public class AuthController {
 
     public record SignupRequest(@NotBlank String username, @NotBlank String password, @NotBlank String role) {}
     public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
+    public record ChangePasswordRequest(@NotBlank String currentPassword, @NotBlank String newPassword) {}
 }

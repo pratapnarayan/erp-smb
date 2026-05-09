@@ -35,15 +35,14 @@ const SearchResults = ({ results, onNavigate }) => {
   };
   
   const handleResultClick = (result) => {
-    // Navigate to entity detail page (existing routes)
+    // Navigate to entity detail page using app route keys (no leading slash)
     const entityRoutes = {
-      PRODUCT: '/inventory',
-      CUSTOMER: '/sales',
-      ORDER: '/orders'
+      PRODUCT: 'inventory',
+      CUSTOMER: 'sales',
+      ORDER: 'orders',
     };
-    
-    const route = entityRoutes[result.entityType] || '/';
-    navigate(route);
+    const routeKey = entityRoutes[result.entityType] || 'dashboard';
+    navigate(routeKey);
   };
   
   if (!results || results.length === 0) {
