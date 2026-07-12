@@ -1,4 +1,4 @@
-package com.erp.smb.gateway.config;
+package com.erp.smb.common.security;
 
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -10,9 +10,10 @@ import org.springframework.stereotype.Component;
  * Fails fast at startup if APP_JWT_SECRET is missing, blank, too short,
  * or still set to the well-known placeholder value.
  *
- * This guard exists in the gateway because the gateway is the first service
- * that processes JWT tokens from external clients. Auth-service has its own
- * equivalent guard via the same mechanism.
+ * Lives in common-lib (rather than a single service) so every service that
+ * signs or verifies JWTs — not just the gateway — refuses to start with an
+ * unsafe secret. Each service picks this up automatically as long as its
+ * component scan includes "com.erp.smb.common".
  */
 @Component
 public class JwtSecretValidator {

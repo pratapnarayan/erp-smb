@@ -43,10 +43,14 @@ export const routes = [
  * App root component.
  *
  * Session management:
- *   - Tokens live in HttpOnly cookies (set/cleared by the server).
+ *   - Tokens live in HttpOnly cookies (set/cleared by the server) — JS cannot
+ *     read them, so a `user` entry in localStorage alone is not proof of a
+ *     valid session (it could be stale or left over on a shared machine).
  *   - localStorage stores only { username, role } for UI personalisation.
- *   - Session validity is inferred from the presence of user metadata.
- *     Any 401 from the API triggers a cookie-based refresh attempt; on
+ *   - On mount, if a `user` entry exists, its session is verified with a
+ *     cookie-based refresh call before the authenticated shell is rendered;
+ *     an invalid/expired session clears `user` and falls back to /login.
+ *   - Any 401 from the API afterwards triggers the same refresh attempt; on
  *     failure, the auth:logout event fires and the user is redirected to /login.
  */
 export default function App() {
@@ -58,6 +62,32 @@ export default function App() {
       return null;
     }
   });
+  // While true, hold off rendering the authenticated shell for a stale/forged
+  // `user` entry until the underlying cookie session is confirmed valid.
+  const [verifyingSession, setVerifyingSession] = useState(() => !!localStorage.getItem('user'));
+
+  // On mount, re-establish that a `user` entry actually corresponds to a live
+  // session by attempting a cookie-based refresh — a stale/forged entry with
+  // no valid refreshToken cookie fails here instead of rendering the shell.
+  useEffect(() => {
+    if (!user) {
+      setVerifyingSession(false);
+      return;
+    }
+    let cancelled = false;
+    authApi.refresh()
+      .catch(() => {
+        if (!cancelled) {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setVerifyingSession(false);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Listen for logout events fired by the token refresh interceptor on failure.
   useEffect(() => {
@@ -68,6 +98,16 @@ export default function App() {
     window.addEventListener('auth:logout', onLogout);
     return () => window.removeEventListener('auth:logout', onLogout);
   }, []);
+
+  if (verifyingSession) {
+    return (
+      <div className={`app app--${theme}`}>
+        <main className="main">
+          <section className="content" />
+        </main>
+      </div>
+    );
+  }
 
   const handleLogin = (u) => {
     setUser(u);

@@ -1,5 +1,6 @@
 package com.erp.smb.auth.config;
 
+import com.erp.smb.common.security.JwtAuthFilter;
 import com.erp.smb.common.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,22 +10,32 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
     /**
-     * Auth service endpoints are open — the gateway enforces auth for all other
-     * services. Auth endpoints themselves must be accessible unauthenticated
-     * (login, signup, refresh). CSRF is disabled because this is a stateless
-     * REST API using JWT, not session cookies for CSRF protection.
+     * All auth-service routes stay open at the authorization-rule level — login,
+     * signup, and refresh must be reachable unauthenticated. But change-password
+     * and delete-user (in AuthController) read the caller's identity from
+     * SecurityContextHolder, so JwtAuthFilter must still run to populate it from
+     * the accessToken cookie/Authorization header; without it those endpoints
+     * always see an anonymous principal. CSRF is disabled because this is a
+     * stateless REST API using JWT, not session cookies for CSRF protection.
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public JwtAuthFilter jwtAuthFilter(JwtUtils jwtUtils) {
+        return new JwtAuthFilter(jwtUtils);
     }
 
     /**

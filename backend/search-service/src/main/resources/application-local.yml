@@ -27,7 +27,7 @@ eureka:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET}
+    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
     access-ttl: 3600
 
 springdoc:

@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../config/baseUrl.js';
+
 /**
  * Axios request/response interceptors for authentication.
  *
@@ -56,7 +58,7 @@ export async function handleAuthError(error) {
 
     try {
       if (!refreshPromise) {
-        refreshPromise = fetch('/api/auth/refresh', {
+        refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, {
           method:      'POST',
           credentials: 'include', // send refreshToken cookie
           headers:     { 'Content-Type': 'application/json' },

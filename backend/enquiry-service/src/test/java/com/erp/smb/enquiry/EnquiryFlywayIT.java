@@ -27,6 +27,10 @@ class EnquiryFlywayIT {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+        // application.yml requires APP_JWT_SECRET with no default (intentional —
+        // production must set a real secret). Tests don't run through the env,
+        // so provide a fixed test-only value here.
+        registry.add("app.jwt.secret", () -> "test-secret-for-unit-tests-only-not-for-production-use");
     }
 
     @Test

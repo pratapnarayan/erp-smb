@@ -28,3 +28,5 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET}
     access-ttl: 3600
+  security:
+    cookie-secure: ${APP_COOKIE_SECURE:true}

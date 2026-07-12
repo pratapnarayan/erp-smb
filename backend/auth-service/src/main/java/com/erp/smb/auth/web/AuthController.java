@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,11 +51,18 @@ public class AuthController {
     private final UserRepository users;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder encoder;
+    /** Whether to set the Secure attribute on auth cookies — true behind HTTPS, false for local http://localhost dev. */
+    private final boolean cookieSecure;
 
-    public AuthController(UserRepository users, JwtUtils jwtUtils, PasswordEncoder encoder) {
-        this.users   = users;
-        this.jwtUtils = jwtUtils;
-        this.encoder  = encoder;
+    public AuthController(
+            UserRepository users,
+            JwtUtils jwtUtils,
+            PasswordEncoder encoder,
+            @Value("${app.security.cookie-secure:true}") boolean cookieSecure) {
+        this.users        = users;
+        this.jwtUtils     = jwtUtils;
+        this.encoder      = encoder;
+        this.cookieSecure = cookieSecure;
     }
 
     // ── POST /api/auth/signup ─────────────────────────────────────────────────
@@ -238,9 +246,9 @@ public class AuthController {
             builder.maxAge(maxAge);
         }
 
-        // Enable Secure flag in production (HTTPS). In local dev, omit it so that
-        // http://localhost still works. Use an environment flag if you need strict control.
-        // builder.secure(true);
+        // Secure defaults to true (production/HTTPS). Local dev profiles set
+        // app.security.cookie-secure=false so http://localhost still works.
+        builder.secure(cookieSecure);
 
         return builder.build();
     }
