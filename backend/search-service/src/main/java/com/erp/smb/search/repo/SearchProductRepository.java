@@ -105,4 +105,17 @@ public interface SearchProductRepository extends JpaRepository<SearchProduct, Lo
      * Count by tenant
      */
     long countByTenantId(String tenantId);
+
+    /**
+     * Bulk-touch all rows for a tenant so the PostgreSQL tsvector update trigger
+     * re-fires for every row, fully rebuilding search_vector from current fields.
+     * Returns the number of rows refreshed.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            UPDATE search.search_products
+            SET    updated_at = CURRENT_TIMESTAMP
+            WHERE  tenant_id  = :tenantId
+            """, nativeQuery = true)
+    int refreshSearchVectors(@Param("tenantId") String tenantId);
 }

@@ -5,8 +5,8 @@ import http from '../api/clients/http.js';
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -19,12 +19,15 @@ export default function Login({ onLogin }) {
     }
     setLoading(true);
     try {
+      // Server response body: { username, role }
+      // Access and refresh tokens are set as HttpOnly cookies by the server.
+      // They are NOT accessible from JavaScript — this is intentional (XSS mitigation).
       const { data } = await http.post('/auth/login', { username: u, password: p });
-      // Expected: { accessToken, refreshToken, username, role }
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+
+      // Store only non-sensitive user metadata for UI personalisation.
       const user = { username: data.username, role: data.role };
       localStorage.setItem('user', JSON.stringify(user));
+
       onLogin(user);
     } catch (err) {
       console.error('Login failed', err);
@@ -48,16 +51,29 @@ export default function Login({ onLogin }) {
             <div className="form-grid">
               <label>
                 <span>Username</span>
-                <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
+                <input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Username"
+                  autoComplete="username"
+                />
               </label>
               <label>
                 <span>Password</span>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Same as username" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                />
               </label>
             </div>
             {error && <div className="form-error" role="alert">{error}</div>}
             <div className="form-actions">
-              <button className="btn btn-primary" type="submit">Login</button>
+              <button className="btn btn-primary" type="submit" disabled={loading}>
+                {loading ? 'Signing in…' : 'Login'}
+              </button>
             </div>
           </form>
         </div>

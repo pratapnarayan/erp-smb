@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GlobalSearch from './GlobalSearch.jsx';
 import http from '../api/clients/http.js';
 
 export default function AppShell({ children, routes, route, onNavigate, theme, setTheme, user, onLogout }) {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 'n2', text: 'New enquiry received from Tata Motors', time: '4h ago', unread: true },
-    { id: 'n3', text: 'Report "Sales Summary" completed', time: '1d ago', unread: false },
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const menuRef = useRef(null);
   const notifRef = useRef(null);
@@ -59,7 +58,7 @@ export default function AppShell({ children, routes, route, onNavigate, theme, s
             <p className="dialog-body">Are you sure you want to sign out of ERP-SMB?</p>
             <div className="dialog-actions">
               <button className="btn" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
-              <button className="btn btn-danger" onClick={() => { setShowLogoutConfirm(false); onLogout(); }}>
+              <button className="btn btn-danger" onClick={() => { setShowLogoutConfirm(false); onLogout(); navigate('/'); }}>
                 Sign out
               </button>
             </div>
@@ -101,7 +100,17 @@ export default function AppShell({ children, routes, route, onNavigate, theme, s
 
       <main className="main">
         <header className="topbar frosted">
-          <h1 className="topbar-title">{routes.find((r) => r.key === route)?.label}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 className="topbar-title">{routes.find((r) => r.key === route)?.label}</h1>
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+              background: 'hsl(38 92% 50% / 0.15)', color: 'hsl(38 80% 38%)',
+              border: '1px solid hsl(38 92% 60% / 0.4)',
+              padding: '2px 7px', borderRadius: 99, lineHeight: 1.6, whiteSpace: 'nowrap',
+            }}>
+              Preview Build
+            </span>
+          </div>
           <div className="topbar-actions">
             <GlobalSearch onNavigate={onNavigate} />
 

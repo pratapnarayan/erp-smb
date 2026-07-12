@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { formatINR } from '../utils/formatCurrency.js';
 import FrostedCard from '../components/FrostedCard.jsx';
 import DataTable from '../components/DataTable.jsx';
 import Badge from '../components/Badge.jsx';
@@ -6,25 +7,19 @@ import http from '../api/clients/http.js';
 
 const TABS = ['Directory', 'Leave', 'Attendance', 'Payroll'];
 
+// ── Column Definitions ────────────────────────────────────────────────────────
+
 const dirCols = [
   { key: 'name', label: 'Name' },
   { key: 'role', label: 'Role' },
   { key: 'dept', label: 'Department' },
-  { key: 'status', label: 'Status', render: (v) => {
-    const s = String(v || '').toLowerCase();
-    const color = s === 'active' ? 'green' : s === 'on_leave' ? 'amber' : 'red';
-    return <Badge color={color}>{v}</Badge>;
-  }},
-];
-
-const DEPARTMENTS = ['Sales', 'Finance', 'Operations', 'Engineering', 'HR', 'Management'];
-
-const DEMO_LEAVE = [
-  { id: 1, employee: 'Ananya Sharma', type: 'Annual Leave', from: '2026-05-12', to: '2026-05-14', days: 3, status: 'Approved' },
-  { id: 2, employee: 'Aditya Gupta', type: 'Sick Leave', from: '2026-05-08', to: '2026-05-09', days: 2, status: 'Approved' },
-  { id: 3, employee: 'Myra Verma', type: 'Annual Leave', from: '2026-05-20', to: '2026-05-22', days: 3, status: 'Pending' },
-  { id: 4, employee: 'Vivaan Iyer', type: 'Work From Home', from: '2026-05-07', to: '2026-05-07', days: 1, status: 'Approved' },
-  { id: 5, employee: 'Ira Reddy', type: 'Maternity Leave', from: '2026-06-01', to: '2026-08-31', days: 91, status: 'Approved' },
+  {
+    key: 'status', label: 'Status', render: (v) => {
+      const s = String(v || '').toLowerCase();
+      const color = s === 'active' ? 'green' : s === 'on_leave' ? 'amber' : 'red';
+      return <Badge color={color}>{v}</Badge>;
+    },
+  },
 ];
 
 const leaveCols = [
@@ -33,18 +28,11 @@ const leaveCols = [
   { key: 'from', label: 'From' },
   { key: 'to', label: 'To' },
   { key: 'days', label: 'Days' },
-  { key: 'status', label: 'Status', render: (v) => (
-    <Badge color={v === 'Approved' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge>
-  )},
-];
-
-const DEMO_ATTENDANCE = [
-  { id: 1, employee: 'Aarav Sharma', date: '2026-05-09', checkIn: '09:02', checkOut: '18:14', hours: '9h 12m', status: 'Present' },
-  { id: 2, employee: 'Diya Gupta', date: '2026-05-09', checkIn: '09:45', checkOut: '18:30', hours: '8h 45m', status: 'Late' },
-  { id: 3, employee: 'Arjun Verma', date: '2026-05-09', checkIn: '—', checkOut: '—', hours: '—', status: 'Absent' },
-  { id: 4, employee: 'Ananya Sharma', date: '2026-05-09', checkIn: '—', checkOut: '—', hours: '—', status: 'On Leave' },
-  { id: 5, employee: 'Ishaan Iyer', date: '2026-05-09', checkIn: '08:58', checkOut: '17:55', hours: '8h 57m', status: 'Present' },
-  { id: 6, employee: 'Siya Reddy', date: '2026-05-09', checkIn: '10:00', checkOut: '19:02', hours: '9h 02m', status: 'Present' },
+  {
+    key: 'status', label: 'Status', render: (v) => (
+      <Badge color={v === 'Approved' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge>
+    ),
+  },
 ];
 
 const attendCols = [
@@ -53,40 +41,61 @@ const attendCols = [
   { key: 'checkIn', label: 'Check-in' },
   { key: 'checkOut', label: 'Check-out' },
   { key: 'hours', label: 'Hours' },
-  { key: 'status', label: 'Status', render: (v) => {
-    const color = v === 'Present' ? 'green' : v === 'Late' ? 'amber' : 'red';
-    return <Badge color={color}>{v}</Badge>;
-  }},
-];
-
-const DEMO_PAYROLL = [
-  { id: 1, employee: 'Aarav Sharma', role: 'Senior Engineer', gross: '₹1,20,000', deductions: '₹18,400', net: '₹1,01,600', status: 'Processed' },
-  { id: 2, employee: 'Diya Gupta', role: 'HR Partner', gross: '₹75,000', deductions: '₹11,500', net: '₹63,500', status: 'Processed' },
-  { id: 3, employee: 'Arjun Verma', role: 'QA Analyst', gross: '₹68,000', deductions: '₹10,420', net: '₹57,580', status: 'Processed' },
-  { id: 4, employee: 'Ananya Sharma', role: 'Finance Analyst', gross: '₹82,000', deductions: '₹12,560', net: '₹69,440', status: 'On Hold' },
-  { id: 5, employee: 'Ishaan Iyer', role: 'DevOps Engineer', gross: '₹95,000', deductions: '₹14,550', net: '₹80,450', status: 'Processed' },
-  { id: 6, employee: 'Siya Reddy', role: 'Sales Executive', gross: '₹55,000', deductions: '₹8,430', net: '₹46,570', status: 'Pending' },
+  {
+    key: 'status', label: 'Status', render: (v) => {
+      const color = v === 'Present' ? 'green' : v === 'Late' ? 'amber' : 'red';
+      return <Badge color={color}>{v}</Badge>;
+    },
+  },
 ];
 
 const payrollCols = [
   { key: 'employee', label: 'Employee' },
   { key: 'role', label: 'Role' },
-  { key: 'gross', label: 'Gross' },
-  { key: 'deductions', label: 'Deductions' },
-  { key: 'net', label: 'Net Pay' },
-  { key: 'status', label: 'Status', render: (v) => (
-    <Badge color={v === 'Processed' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge>
-  )},
+  { key: 'gross', label: 'Gross', render: (v) => formatINR(v) },
+  { key: 'deductions', label: 'Deductions', render: (v) => formatINR(v) },
+  { key: 'net', label: 'Net Pay', render: (v) => formatINR(v) },
+  {
+    key: 'status', label: 'Status', render: (v) => (
+      <Badge color={v === 'Processed' ? 'green' : v === 'Pending' ? 'amber' : 'red'}>{v}</Badge>
+    ),
+  },
 ];
+
+const DEPARTMENTS = ['Sales', 'Finance', 'Operations', 'Engineering', 'HR', 'Management'];
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function HRMS() {
   const [tab, setTab] = useState('Directory');
+
+  // Directory
   const [rows, setRows] = useState([]);
   const [form, setForm] = useState({ name: '', role: '', dept: 'Sales', status: 'Active' });
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+
+  // Leave
+  const [leaveRows, setLeaveRows] = useState([]);
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState('');
+  const [leaveFetched, setLeaveFetched] = useState(false);
+
+  // Attendance
+  const [attendRows, setAttendRows] = useState([]);
+  const [attendLoading, setAttendLoading] = useState(false);
+  const [attendError, setAttendError] = useState('');
+  const [attendFetched, setAttendFetched] = useState(false);
+
+  // Payroll
+  const [payrollRows, setPayrollRows] = useState([]);
+  const [payrollLoading, setPayrollLoading] = useState(false);
+  const [payrollError, setPayrollError] = useState('');
+  const [payrollFetched, setPayrollFetched] = useState(false);
+
+  // ── Load functions ──────────────────────────────────────────────────────────
 
   useEffect(() => {
     (async () => {
@@ -102,6 +111,60 @@ export default function HRMS() {
       }
     })();
   }, []);
+
+  const loadLeave = useCallback(async () => {
+    setLeaveLoading(true);
+    setLeaveError('');
+    try {
+      const { data } = await http.get('/hrms/leave', { params: { page: 0, size: 50 } });
+      setLeaveRows(data.content || []);
+      setLeaveFetched(true);
+    } catch (err) {
+      console.error('Failed to load leave requests', err);
+      setLeaveError('Failed to load leave requests.');
+    } finally {
+      setLeaveLoading(false);
+    }
+  }, []);
+
+  const loadAttendance = useCallback(async () => {
+    setAttendLoading(true);
+    setAttendError('');
+    try {
+      const { data } = await http.get('/hrms/attendance', { params: { page: 0, size: 50 } });
+      setAttendRows(data.content || []);
+      setAttendFetched(true);
+    } catch (err) {
+      console.error('Failed to load attendance', err);
+      setAttendError('Failed to load attendance records.');
+    } finally {
+      setAttendLoading(false);
+    }
+  }, []);
+
+  const loadPayroll = useCallback(async () => {
+    setPayrollLoading(true);
+    setPayrollError('');
+    try {
+      const { data } = await http.get('/hrms/payroll', { params: { page: 0, size: 50 } });
+      setPayrollRows(data.content || []);
+      setPayrollFetched(true);
+    } catch (err) {
+      console.error('Failed to load payroll', err);
+      setPayrollError('Failed to load payroll data.');
+    } finally {
+      setPayrollLoading(false);
+    }
+  }, []);
+
+  // Lazy-load tab data on first visit
+  useEffect(() => {
+    if (tab === 'Leave'      && !leaveFetched)   loadLeave();
+    if (tab === 'Attendance' && !attendFetched)  loadAttendance();
+    if (tab === 'Payroll'    && !payrollFetched) loadPayroll();
+  }, [tab, leaveFetched, attendFetched, payrollFetched, loadLeave, loadAttendance, loadPayroll]);
+
+  // ── Directory helpers ───────────────────────────────────────────────────────
 
   const validate = () => {
     const errors = {};
@@ -132,6 +195,21 @@ export default function HRMS() {
     String(r.role || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  // ── Payroll summary ─────────────────────────────────────────────────────────
+
+  const payrollSummary = React.useMemo(() => {
+    return payrollRows.reduce(
+      (acc, r) => ({
+        gross:      acc.gross      + Number(r.gross      || 0),
+        deductions: acc.deductions + Number(r.deductions || 0),
+        net:        acc.net        + Number(r.net        || 0),
+      }),
+      { gross: 0, deductions: 0, net: 0 }
+    );
+  }, [payrollRows]);
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <div className="grid cols-1">
       {/* Tab bar */}
@@ -152,6 +230,7 @@ export default function HRMS() {
         ))}
       </div>
 
+      {/* ── Directory ── */}
       {tab === 'Directory' && (
         <>
           <FrostedCard title="Add Employee" subtitle="HR management">
@@ -213,35 +292,81 @@ export default function HRMS() {
         </>
       )}
 
+      {/* ── Leave ── */}
       {tab === 'Leave' && (
-        <FrostedCard title="Leave Requests" subtitle="Approved and pending time-off requests">
-          <DataTable columns={leaveCols} rows={DEMO_LEAVE} />
+        <FrostedCard
+          title="Leave Requests"
+          subtitle="Approved and pending time-off requests"
+          actions={
+            <button className="btn" onClick={loadLeave} disabled={leaveLoading}>
+              {leaveLoading ? 'Loading…' : '↻ Refresh'}
+            </button>
+          }
+        >
+          {leaveLoading && <div style={{ color: 'hsl(var(--muted))', padding: 16, fontSize: 13 }}>Loading…</div>}
+          {leaveError && <div className="form-error" role="alert" style={{ margin: '8px 0' }}>{leaveError}</div>}
+          {!leaveLoading && !leaveError && leaveRows.length === 0 && (
+            <div style={{ padding: '24px', textAlign: 'center', color: 'hsl(var(--muted))' }}>No leave requests found.</div>
+          )}
+          {leaveRows.length > 0 && <DataTable columns={leaveCols} rows={leaveRows} />}
         </FrostedCard>
       )}
 
+      {/* ── Attendance ── */}
       {tab === 'Attendance' && (
-        <FrostedCard title="Attendance" subtitle={`Today's attendance — ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`}>
-          <DataTable columns={attendCols} rows={DEMO_ATTENDANCE} />
+        <FrostedCard
+          title="Attendance"
+          subtitle={`Today's attendance — ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+          actions={
+            <button className="btn" onClick={loadAttendance} disabled={attendLoading}>
+              {attendLoading ? 'Loading…' : '↻ Refresh'}
+            </button>
+          }
+        >
+          {attendLoading && <div style={{ color: 'hsl(var(--muted))', padding: 16, fontSize: 13 }}>Loading…</div>}
+          {attendError && <div className="form-error" role="alert" style={{ margin: '8px 0' }}>{attendError}</div>}
+          {!attendLoading && !attendError && attendRows.length === 0 && (
+            <div style={{ padding: '24px', textAlign: 'center', color: 'hsl(var(--muted))' }}>No attendance records found for today.</div>
+          )}
+          {attendRows.length > 0 && <DataTable columns={attendCols} rows={attendRows} />}
         </FrostedCard>
       )}
 
+      {/* ── Payroll ── */}
       {tab === 'Payroll' && (
-        <FrostedCard title="Payroll" subtitle="Current month payroll summary">
-          <div style={{ marginBottom: 12, display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, background: 'hsl(var(--primary-500) / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Total Gross</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>₹4,95,000</div>
-            </div>
-            <div style={{ flex: 1, background: 'hsl(0 80% 55% / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Total Deductions</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>₹75,860</div>
-            </div>
-            <div style={{ flex: 1, background: 'hsl(142 70% 45% / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
-              <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Net Payable</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>₹4,19,140</div>
-            </div>
-          </div>
-          <DataTable columns={payrollCols} rows={DEMO_PAYROLL} />
+        <FrostedCard
+          title="Payroll"
+          subtitle="Current month payroll summary"
+          actions={
+            <button className="btn" onClick={loadPayroll} disabled={payrollLoading}>
+              {payrollLoading ? 'Loading…' : '↻ Refresh'}
+            </button>
+          }
+        >
+          {payrollLoading && <div style={{ color: 'hsl(var(--muted))', padding: 16, fontSize: 13 }}>Loading…</div>}
+          {payrollError && <div className="form-error" role="alert" style={{ margin: '8px 0' }}>{payrollError}</div>}
+          {payrollRows.length > 0 && (
+            <>
+              <div style={{ marginBottom: 12, display: 'flex', gap: 16 }}>
+                <div style={{ flex: 1, background: 'hsl(var(--primary-500) / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Total Gross</div>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>{formatINR(payrollSummary.gross)}</div>
+                </div>
+                <div style={{ flex: 1, background: 'hsl(0 80% 55% / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Total Deductions</div>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>{formatINR(payrollSummary.deductions)}</div>
+                </div>
+                <div style={{ flex: 1, background: 'hsl(142 70% 45% / 0.08)', borderRadius: 10, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 12, color: 'hsl(var(--muted))' }}>Net Payable</div>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>{formatINR(payrollSummary.net)}</div>
+                </div>
+              </div>
+              <DataTable columns={payrollCols} rows={payrollRows} />
+            </>
+          )}
+          {!payrollLoading && !payrollError && payrollRows.length === 0 && (
+            <div style={{ padding: '24px', textAlign: 'center', color: 'hsl(var(--muted))' }}>No payroll records found.</div>
+          )}
         </FrostedCard>
       )}
     </div>

@@ -1,12 +1,20 @@
 import http from './http.js';
 
 export const authApi = {
-  login: (username, password) => http.post('/auth/login', { username, password }).then(r => r.data),
-  signup: (username, password, role) => http.post('/auth/signup', { username, password, role }).then(r => r.data),
-  refresh: (refreshToken) => http.post('/auth/refresh', { refreshToken }).then(r => r.data),
+  login:      (username, password)       => http.post('/auth/login', { username, password }).then(r => r.data),
+  signup:     (username, password, role) => http.post('/auth/signup', { username, password, role }).then(r => r.data),
+  // Refresh token is sent automatically via HttpOnly cookie — no body needed.
+  refresh:    ()                         => http.post('/auth/refresh').then(r => r.data),
+  // Server clears auth cookies; client clears user metadata from localStorage.
+  logout:     ()                         => http.post('/auth/logout').then(r => r.data),
+  deleteUser: (username)                 => http.delete(`/auth/users/${encodeURIComponent(username)}`).then(r => r.data),
 };
 
-export const usersApi = { list: (page=0,size=20) => http.get(`/users?page=${page}&size=${size}`).then(r=>r.data) };
+export const usersApi = {
+  list:   (page=0, size=20) => http.get(`/users?page=${page}&size=${size}`).then(r => r.data),
+  create: (profile)         => http.post('/users', profile).then(r => r.data),
+  delete: (username)        => http.delete(`/users/${encodeURIComponent(username)}`).then(r => r.data),
+};
 export const productsApi = { list: (page=0,size=20) => http.get(`/products?page=${page}&size=${size}`).then(r=>r.data), create: (item)=> http.post('/products', item).then(r=>r.data) };
 export const ordersApi = { list: (page=0,size=20) => http.get(`/orders?page=${page}&size=${size}`).then(r=>r.data), create: (order)=> http.post('/orders', order).then(r=>r.data) };
 export const salesApi = { list: (page=0,size=20) => http.get(`/sales?page=${page}&size=${size}`).then(r=>r.data) };

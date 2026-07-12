@@ -7,6 +7,8 @@ import com.erp.smb.search.domain.SearchProduct;
 import com.erp.smb.search.repo.SearchCustomerRepository;
 import com.erp.smb.search.repo.SearchOrderRepository;
 import com.erp.smb.search.repo.SearchProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
+
+    private static final Logger log = LoggerFactory.getLogger(SearchService.class);
     
     private final SearchProductRepository productRepository;
     private final SearchCustomerRepository customerRepository;
@@ -231,57 +235,40 @@ public class SearchService {
     
     /**
      * Bulk reindex for a specific entity type.
-     * Idempotent - can be run multiple times safely.
-     * ADMIN role only.
-     * 
-     * @param entityType The entity type to reindex
-     * @param tenantId The tenant to reindex for
-     * @return Number of entities reindexed
+     *
+     * Implementation: issues a bulk UPDATE that sets updated_at = CURRENT_TIMESTAMP
+     * for every row belonging to {@code tenantId}. The PostgreSQL tsvector trigger
+     * (defined in V1__init_search_schema.sql) fires on every UPDATE and recomputes
+     * search_vector from the current field values, so this effectively refreshes the
+     * full-text search index without needing to call entity services over HTTP.
+     *
+     * This is idempotent and safe to run at any time. The operation is transactional
+     * — either all rows are refreshed or none are.
+     *
+     * @param entityType The entity type to reindex (must be v1-supported)
+     * @param tenantId   The tenant whose index to refresh
+     * @return Number of rows whose search vectors were refreshed
      */
     @Transactional
     public long bulkReindex(SearchEntityType entityType, String tenantId) {
         if (!entityType.isV1Supported()) {
             throw new IllegalArgumentException("Entity type " + entityType + " is not supported for reindexing");
         }
-        
+
         long startTime = System.currentTimeMillis();
-        long count = 0;
-        
-        // Note: In production, this should fetch from entity services via REST
-        // For now, this is a placeholder that clears and rebuilds from existing data
-        switch (entityType) {
-            case PRODUCT -> {
-                // Clear existing indexes for this tenant
-                List<SearchProduct> existing = productRepository.findAll().stream()
-                    .filter(p -> p.getTenantId().equals(tenantId))
-                    .toList();
-                count = existing.size();
-                // In production: fetch from product-service and reindex
-            }
-            case CUSTOMER -> {
-                List<SearchCustomer> existing = customerRepository.findAll().stream()
-                    .filter(c -> c.getTenantId().equals(tenantId))
-                    .toList();
-                count = existing.size();
-                // In production: fetch from sales-service and reindex
-            }
-            case ORDER -> {
-                List<SearchOrder> existing = orderRepository.findAll().stream()
-                    .filter(o -> o.getTenantId().equals(tenantId))
-                    .toList();
-                count = existing.size();
-                // In production: fetch from order-service and reindex
-            }
-        }
-        
+
+        int refreshed = switch (entityType) {
+            case PRODUCT  -> productRepository.refreshSearchVectors(tenantId);
+            case CUSTOMER -> customerRepository.refreshSearchVectors(tenantId);
+            case ORDER    -> orderRepository.refreshSearchVectors(tenantId);
+            default       -> 0;
+        };
+
         long duration = System.currentTimeMillis() - startTime;
-        // Log for monitoring
-        System.out.println(String.format(
-            "[REINDEX] entityType=%s, tenantId=%s, count=%d, duration=%dms",
-            entityType, tenantId, count, duration
-        ));
-        
-        return count;
+        log.info("Reindex complete: entityType={}, tenantId={}, refreshed={}, durationMs={}",
+                entityType, tenantId, refreshed, duration);
+
+        return refreshed;
     }
     
     /**

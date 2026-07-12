@@ -43,5 +43,5 @@ springdoc:
 
 app:
   jwt:
-    secret: dev-secret-please-change-32-chars-minimum-123456
+    secret: ${APP_JWT_SECRET}
     access-ttl: 3600
