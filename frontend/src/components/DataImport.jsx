@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import FrostedCard from './FrostedCard.jsx';
 import Badge from './Badge.jsx';
+import { API_BASE_URL } from '../api/config/baseUrl.js';
 
 export default function DataImport() {
   const [activeTab, setActiveTab] = useState('customers');
@@ -48,26 +49,21 @@ export default function DataImport() {
     formData.append('file', file);
 
     try {
-      const token = localStorage.getItem('accessToken');
       let endpoint = '';
-      let servicePort = 'http://localhost:8080'; // default to gateway
-
       if (type === 'customers') {
-        endpoint = '/api/customers/import';
-        servicePort = 'http://localhost:8085'; // sales-service
+        endpoint = '/customers/import';
       } else if (type === 'products') {
-        endpoint = '/api/products/import';
-        servicePort = 'http://localhost:8083'; // product-service
+        endpoint = '/products/import';
       } else if (type === 'opening-stock') {
-        endpoint = '/api/products/import/opening-stock';
-        servicePort = 'http://localhost:8083'; // product-service
+        endpoint = '/products/import/opening-stock';
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || servicePort}${endpoint}`, {
+      // Route through the gateway like every other request; auth is the
+      // HttpOnly accessToken cookie (sent automatically via credentials:'include'),
+      // not a Bearer token — tokens are no longer stored in localStorage.
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
         body: formData
       });
 
@@ -95,29 +91,22 @@ export default function DataImport() {
 
   const downloadTemplate = async (type) => {
     try {
-      const token = localStorage.getItem('accessToken');
       let endpoint = '';
       let filename = '';
-      let servicePort = 'http://localhost:8080'; // default to gateway
 
       if (type === 'customers') {
-        endpoint = '/api/customers/import/template';
+        endpoint = '/customers/import/template';
         filename = 'customers_import_template.csv';
-        servicePort = 'http://localhost:8085'; // sales-service
       } else if (type === 'products') {
-        endpoint = '/api/products/import/template';
+        endpoint = '/products/import/template';
         filename = 'products_import_template.csv';
-        servicePort = 'http://localhost:8083'; // product-service
       } else if (type === 'opening-stock') {
-        endpoint = '/api/products/import/opening-stock/template';
+        endpoint = '/products/import/opening-stock/template';
         filename = 'opening_stock_import_template.csv';
-        servicePort = 'http://localhost:8083'; // product-service
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || servicePort}${endpoint}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        credentials: 'include',
       });
 
       const blob = await response.blob();

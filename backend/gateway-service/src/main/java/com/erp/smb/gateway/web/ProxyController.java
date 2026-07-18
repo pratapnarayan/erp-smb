@@ -1,6 +1,8 @@
 package com.erp.smb.gateway.web;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import com.erp.smb.common.security.JwtAuthFilter;
 import com.erp.smb.gateway.config.ProxyProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpMethod;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -36,6 +39,7 @@ public class ProxyController {
         String method = req.getMethod();
         String fullPath = req.getRequestURI();
         String authorization = req.getHeader("Authorization");
+        String cookieHeader = req.getHeader("Cookie");
         String contentType = req.getHeader("Content-Type");
         String accept = req.getHeader("Accept");
         String tenant = req.getHeader("X-Tenant-Id");
@@ -49,15 +53,27 @@ public class ProxyController {
             requestBody = req.getInputStream().readAllBytes();
         }
 
-        // Derive tenantId from JWT if header is missing
-        if ((tenant == null || tenant.isBlank()) && authorization != null && authorization.startsWith("Bearer ")) {
+        // Derive tenantId from JWT if header is missing. The token may arrive as an
+        // Authorization: Bearer header (API clients) or as the accessToken HttpOnly
+        // cookie (browser sessions) — check both, same precedence as JwtAuthFilter.
+        String jwtToken = null;
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            jwtToken = authorization.substring(7);
+        } else if (req.getCookies() != null) {
+            jwtToken = Arrays.stream(req.getCookies())
+                    .filter(c -> JwtAuthFilter.ACCESS_TOKEN_COOKIE.equals(c.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+        if ((tenant == null || tenant.isBlank()) && jwtToken != null) {
             try {
                 var jwt = new com.erp.smb.common.security.JwtUtils(
                         System.getProperty("app.jwt.secret",
                                 System.getenv().getOrDefault("APP_JWT_SECRET",
                                         "dev-secret-please-change-32-chars-minimum-123456")),
                         3600, 3600 * 24);
-                var claims = jwt.parse(authorization.substring(7)).getBody();
+                var claims = jwt.parse(jwtToken).getBody();
                 Object t = claims.get("tenantId");
                 if (t == null)
                     t = claims.get("tenant_id");
@@ -121,6 +137,11 @@ public class ProxyController {
                     .uri(URI.create(targetUrl));
             if (authorization != null && !authorization.isBlank())
                 reqSpec = reqSpec.header("Authorization", authorization);
+            // Forward the Cookie header so downstream services can read the
+            // HttpOnly accessToken/refreshToken cookies set by auth-service —
+            // without this, cookie-based sessions never reach any proxied service.
+            if (cookieHeader != null && !cookieHeader.isBlank())
+                reqSpec = reqSpec.header("Cookie", cookieHeader);
             if (accept != null && !accept.isBlank())
                 reqSpec = reqSpec.header("Accept", accept);
             if (tenant != null && !tenant.isBlank())

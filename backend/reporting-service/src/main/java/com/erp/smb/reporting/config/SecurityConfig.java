@@ -21,9 +21,13 @@ public class SecurityConfig {
         if (permitAll) {
             http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         } else {
+            // Reports are tenant-sensitive — both reads and writes require a valid
+            // session. Do not permitAll GETs here: the gateway also requires auth
+            // on /api/reports/**, but this service can be reached directly (same
+            // docker network, no network policy, etc.), so it must enforce this
+            // itself rather than relying solely on the gateway's route rules.
             http.authorizeHttpRequests(auth -> auth
                     .requestMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/v1/reports/**").permitAll()
                     .anyRequest().authenticated()
             );
         }

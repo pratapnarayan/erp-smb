@@ -7,7 +7,7 @@ spring:
   #   import: "classpath:routes/auth.yml,classpath:routes/users.yml,classpath:routes/products.yml,classpath:routes/orders.yml,classpath:routes/sales.yml,classpath:routes/finance.yml,classpath:routes/hrms.yml,classpath:routes/enquiry.yml,classpath:routes/reports.yml"
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    secret: ${APP_JWT_SECRET}
     access-ttl: 3600
 
 proxy:

@@ -17,7 +17,11 @@ function resolveEntity(url = '') {
   return url.split('/').filter(Boolean)[1] || 'System';
 }
 
-const http = axios.create({ baseURL: API_BASE_URL });
+// withCredentials: true is required for the browser to send and receive
+// HttpOnly auth cookies cross-origin (e.g. Vite dev proxy → gateway at :8080).
+// The gateway CORS config already sets allowCredentials=true and an explicit
+// allowedOrigins list, so the browser will honour this flag.
+const http = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
 http.interceptors.request.use(attachToken);
 http.interceptors.response.use(
   (response) => {

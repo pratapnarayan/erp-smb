@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -18,6 +19,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
+// application-local.yml requires APP_JWT_SECRET with no default (intentional —
+// local/prod must set a real secret). Provide a fixed test-only value so this
+// suite doesn't depend on the shell environment.
+@TestPropertySource(properties = "app.jwt.secret=test-secret-for-unit-tests-only-not-for-production-use")
 public class SearchControllerSecurityTest {
     
     @Autowired

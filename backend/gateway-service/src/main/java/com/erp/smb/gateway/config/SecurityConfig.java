@@ -67,7 +67,9 @@ public class SecurityConfig {
                                 "/api/reports/v3/api-docs/**",
                                 "/api/search/v3/api-docs/**")
                         .permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/reports/**").permitAll()
+                        // Reports require authentication — tenant-sensitive data must never be
+                        // publicly accessible. Both reads and writes require a valid session.
+                        .requestMatchers("/api/reports/**").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

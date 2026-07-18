@@ -105,4 +105,16 @@ public interface SearchOrderRepository extends JpaRepository<SearchOrder, Long> 
      * Count by tenant
      */
     long countByTenantId(String tenantId);
+
+    /**
+     * Bulk-touch all rows for a tenant so the PostgreSQL tsvector update trigger
+     * re-fires for every row, fully rebuilding search_vector from current fields.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            UPDATE search.search_orders
+            SET    updated_at = CURRENT_TIMESTAMP
+            WHERE  tenant_id  = :tenantId
+            """, nativeQuery = true)
+    int refreshSearchVectors(@Param("tenantId") String tenantId);
 }

@@ -35,6 +35,13 @@ body {
 }
 
 .app {
+  /* Re-declare color here (not just on body) so it resolves against this
+     element's own --text. The dark/light theme class lives on .app, and
+     CSS custom properties only cascade downward — a color declared on
+     body can't see --text overrides from a class scoped to its own
+     descendant, so every element that inherits color instead of setting
+     its own would stay stuck with the light-mode value in dark mode. */
+  color: hsl(var(--text));
   display: grid;
   grid-template-columns: 280px 1fr;
   grid-template-rows: auto 1fr;

@@ -64,7 +64,7 @@ services:
       context: ./backend
       dockerfile: gateway-service/Dockerfile
     environment:
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       # Allow frontend container origin (3000) and local Vite dev origin (5173)
       APP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
@@ -92,7 +92,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -112,7 +112,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -132,7 +132,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
@@ -153,7 +153,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
@@ -174,7 +174,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_SEARCH_SERVICE_URL: http://search-service:8090
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
@@ -195,7 +195,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -215,7 +215,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -235,7 +235,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-erp}
       POSTGRES_USER: ${POSTGRES_USER:-erp}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     depends_on:
       postgres:
@@ -256,7 +256,7 @@ services:
       REPORTS_STORAGE_DIR: /data/reports
       REPORTS_MAX_EXPORT_ROWS: ${REPORTS_MAX_EXPORT_ROWS:-1000000}
       EXPORT_RETENTION_DAYS: ${EXPORT_RETENTION_DAYS:-30}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_APPLICATION_JSON: '{"eureka":{"client":{"serviceUrl":{"defaultZone":"http://discovery-service:8761/eureka"},"registryFetchIntervalSeconds":10}}}'
     volumes:
       - ${REPORTS_STORAGE_HOST_DIR:-./data/reports}:/data/reports
@@ -273,7 +273,7 @@ services:
       context: ./backend
       dockerfile: search-service/Dockerfile
     environment:
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-secret-please-change-32-chars-minimum-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-erp}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-erp}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-erp}

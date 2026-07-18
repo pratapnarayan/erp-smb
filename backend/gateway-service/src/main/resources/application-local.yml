@@ -14,7 +14,7 @@ eureka:
 
 app:
   jwt:
-    secret: dev-secret-please-change-32-chars-minimum-123456
+    secret: ${APP_JWT_SECRET}
   cors:
     allowed-origins: http://localhost:5173,http://localhost:3000
 

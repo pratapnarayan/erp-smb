@@ -1,72 +1,85 @@
-export function attachToken(config){
-  const token = localStorage.getItem('accessToken');
+import { API_BASE_URL } from '../config/baseUrl.js';
+
+/**
+ * Axios request/response interceptors for authentication.
+ *
+ * Auth model (HttpOnly cookies):
+ *   - Access and refresh tokens are stored in HttpOnly cookies set by the server.
+ *   - JavaScript cannot read these cookies, preventing XSS-based token theft.
+ *   - Axios sends them automatically when `withCredentials: true` is set on the
+ *     instance (configured in http.js).
+ *   - No Authorization header is attached manually — the cookie is the credential.
+ *
+ * X-Tenant-Id header is still attached here (it is not sensitive).
+ */
+
+/**
+ * Request interceptor: attach X-Tenant-Id header only.
+ * Tokens travel via HttpOnly cookies and are sent by the browser automatically.
+ */
+export function attachToken(config) {
   const tenantId = localStorage.getItem('tenantId') || 'demo';
   config.headers = config.headers || {};
-  // For local dev: skip Authorization header on read-only reporting GETs to avoid JwtAuthFilter failures
-  const isReportingGet = config?.method?.toLowerCase() === 'get' && typeof config?.url === 'string' && config.url.includes('/api/reports/v1/reports/');
-  if (token && !isReportingGet) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-  }
   if (!config.headers['X-Tenant-Id'] && tenantId) {
     config.headers['X-Tenant-Id'] = tenantId;
   }
   return config;
 }
 
+/** Single in-flight refresh promise, shared across concurrent 401 failures. */
 let refreshPromise = null;
 
-function clearAuthStorage(){
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
+function clearUserStorage() {
+  // Only clear non-sensitive user metadata (tokens live in HttpOnly cookies).
   localStorage.removeItem('user');
 }
 
-function notifyLoggedOut(){
+function notifyLoggedOut() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('auth:logout'));
   }
 }
 
-export async function handleAuthError(error){
-  const status = error?.response?.status;
+/**
+ * Response error interceptor.
+ *
+ * On 401/403:
+ *   1. POST /api/auth/refresh — the refreshToken cookie is sent automatically.
+ *   2. Server sets a new accessToken cookie and returns 200.
+ *   3. Retry the original request (new cookie is sent automatically).
+ *   4. If refresh fails, clear user data and fire auth:logout.
+ */
+export async function handleAuthError(error) {
+  const status   = error?.response?.status;
   const original = error.config || {};
+
   if ((status === 401 || status === 403) && !original._retry) {
     original._retry = true;
 
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken || refreshToken === 'undefined' || refreshToken === 'null') {
-      clearAuthStorage();
-      notifyLoggedOut();
-      return Promise.reject(error);
-    }
-
     try {
       if (!refreshPromise) {
-        refreshPromise = fetch('/api/auth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
+        refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, {
+          method:      'POST',
+          credentials: 'include', // send refreshToken cookie
+          headers:     { 'Content-Type': 'application/json' },
         })
           .then(async (resp) => {
-            if (!resp.ok) throw new Error('Refresh failed');
-            const data = await resp.json();
-            if (!data?.accessToken) throw new Error('Missing accessToken');
-            localStorage.setItem('accessToken', data.accessToken);
-            return data.accessToken;
+            if (!resp.ok) throw new Error('Token refresh failed');
+            // New accessToken cookie has been set by the server.
+            // Nothing to store — the browser handles the cookie.
           })
           .finally(() => {
             refreshPromise = null;
           });
       }
 
-      const newToken = await refreshPromise;
-      original.headers = original.headers || {};
-      original.headers['Authorization'] = `Bearer ${newToken}`;
+      await refreshPromise;
 
+      // Retry the original request — the new accessToken cookie will be sent.
       if (!window?.axios) return Promise.reject(error);
       return window.axios(original);
-    } catch (e) {
-      clearAuthStorage();
+    } catch {
+      clearUserStorage();
       notifyLoggedOut();
       return Promise.reject(error);
     }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,6 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @ActiveProfiles("local")
+// application-local.yml requires APP_JWT_SECRET with no default (intentional —
+// local/prod must set a real secret). Provide a fixed test-only value so this
+// suite doesn't depend on the shell environment.
+@TestPropertySource(properties = "app.jwt.secret=test-secret-for-unit-tests-only-not-for-production-use")
 @Transactional
 public class SearchServiceTest {
     
