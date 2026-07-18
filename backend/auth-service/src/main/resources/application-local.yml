@@ -35,7 +35,7 @@ eureka:
 
 app:
   jwt:
-    secret: ${APP_JWT_SECRET:dev-secret-please-change-32-chars-minimum-123456}
+    secret: ${APP_JWT_SECRET}
   security:
     # Local dev serves the frontend over http://localhost — Secure cookies would
     # never be sent by the browser over plain HTTP, breaking login locally.

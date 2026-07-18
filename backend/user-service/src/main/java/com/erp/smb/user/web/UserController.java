@@ -23,6 +23,9 @@ public class UserController {
             "ADMIN", "OWNER", "MANAGER", "USER", "VIEWER", "HR", "FINANCE", "OPERATIONS"
     );
 
+    /** Only an ADMIN caller may provision another ADMIN or OWNER — HR is not privileged enough. */
+    private static final Set<String> PRIVILEGED_ROLES = Set.of("ADMIN", "OWNER");
+
     private final UserProfileRepository repo;
 
     public UserController(UserProfileRepository repo) {
@@ -45,7 +48,9 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
-    public ResponseEntity<?> create(@Valid @RequestBody UserProfile profile) {
+    public ResponseEntity<?> create(
+            @Valid @RequestBody UserProfile profile,
+            @AuthenticationPrincipal UserDetails caller) {
 
         // Normalise role to upper-case for consistent storage
         if (profile.getRole() != null) {
@@ -57,6 +62,17 @@ public class UserController {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "invalid_role",
                                  "allowed", ALLOWED_ROLES));
+        }
+
+        // Guard: only ADMIN may provision another ADMIN/OWNER — otherwise an HR
+        // caller (also allowed to hit this endpoint) could escalate privileges
+        // by creating themselves or a colleague a full ADMIN/OWNER account.
+        boolean callerIsAdmin = caller != null && caller.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!callerIsAdmin && PRIVILEGED_ROLES.contains(profile.getRole())) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("error", "forbidden",
+                                 "message", "Only ADMIN can assign ADMIN or OWNER roles"));
         }
 
         // Guard: username must be unique across the organisation

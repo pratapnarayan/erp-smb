@@ -246,9 +246,12 @@ export default function Admin({ currentRole, currentUsername }) {
     }
   };
 
-  const canInvite = currentRole === 'ROLE_ADMIN' || currentRole === 'ROLE_HR';
-  const canDelete = currentRole === 'ROLE_ADMIN';
-  const canImport = currentRole === 'ROLE_ADMIN' || currentRole === 'ROLE_OWNER';
+  // currentRole is the bare role string from the login response (e.g. "ADMIN"),
+  // not the "ROLE_"-prefixed form Spring Security uses internally for authorities.
+  const role = String(currentRole || '').toUpperCase();
+  const canInvite = role === 'ADMIN' || role === 'HR';
+  const canDelete = role === 'ADMIN';
+  const canImport = role === 'ADMIN' || role === 'OWNER';
 
   // Build columns dynamically so the delete column only appears for ADMIN
   const userColumns = [

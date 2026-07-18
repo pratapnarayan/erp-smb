@@ -189,6 +189,7 @@ public class AuthController {
     // ── DELETE /api/auth/users/{username} (ADMIN only) ───────────────────────
 
     @DeleteMapping("/users/{username}")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> deleteUser(@PathVariable String username) {
         var auth = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication();
